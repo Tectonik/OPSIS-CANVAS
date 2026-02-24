@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPSIS | bouncy · premium print</title>
+    <!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<!-- Already have this, but can add for more options -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* ----- ELASTIC / BOUNCY FOUNDATION ----- */
+        :root {
+            --bg: #f7f6f0;
+            --text: #111;
+            --accent-green: #a3e635;
+            --accent-blue: #3b82f6;
+            --accent-pink: #f472b6;
+            --accent-red: #FF385C;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);    /* elastic pop */
+            --ease-out-soft: cubic-bezier(0.25, 1, 0.5, 1);
+            --ease-elastic-heavy: cubic-bezier(0.68, -0.6, 0.32, 1.6);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font);
+            background-color: #e2e0d6;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 480px;
+            width: 100%;
+            background-color: var(--bg);
+            min-height: 100vh;
+            box-shadow: 0 0 30px rgba(0,0,0,0.08);
+            position: relative;
+        }
+
+        /* ----- REVEAL with elastic transforms + observer ----- */
+        .reveal-fade-up {
+            opacity: 0;
+            transform: translateY(40px) scale(0.98);
+            transition: transform 0.9s var(--ease-bounce), opacity 0.7s var(--ease-out-soft);
+        }
+        .reveal-fade-up.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .reveal-slide-right {
+            opacity: 0;
+            transform: translateX(-30px) skewX(-2deg);
+            transition: transform 0.9s var(--ease-bounce), opacity 0.8s var(--ease-out-soft);
+        }
+        .reveal-slide-right.active {
+            opacity: 1;
+            transform: translateX(0) skewX(0);
+        }
+
+        .reveal-zoom {
+            opacity: 0;
+            transform: scale(0.7) rotate(-1deg);
+            transition: transform 0.9s var(--ease-elastic-heavy), opacity 0.8s ease;
+        }
+        .reveal-zoom.active {
+            opacity: 1;
+            transform: scale(1) rotate(0);
+        }
+
+        /* staggered helpers */
+        .delay-1 { transition-delay: 0.05s; }
+        .delay-2 { transition-delay: 0.15s; }
+        .delay-3 { transition-delay: 0.25s; }
+        .delay-4 { transition-delay: 0.4s; }
+
+/* ----- SIDEBAR STYLE 2: Bottom Sheet + Scale Reveal ----- */
+.sidebar {
+    position: fixed;
+    bottom: -100%;
+    left: 0;
+    width: 100%;
+    height: auto;
+    max-height: 80vh;
+    background: #111;
+    z-index: 1000;
+    transition: bottom 0.6s var(--ease-bounce);
+    padding: 3rem 2rem;
+    color: white;
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.3);
+}
+.sidebar.active { bottom: 0; }
+.sidebar-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(5px);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+.sidebar-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.sidebar a {
+    display: inline-block;
+    color: white;
+    text-decoration: none;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin: 0.5rem 0;
+    transform: scale(0.8);
+    opacity: 0;
+    transition: transform 0.5s var(--ease-bounce), opacity 0.4s;
+    transform-origin: left;
+}
+.sidebar.active a {
+    transform: scale(1);
+    opacity: 1;
+}
+.sidebar.active a:nth-child(1) { transition-delay: 0.1s; }
+.sidebar.active a:nth-child(2) { transition-delay: 0.2s; }
+.sidebar.active a:nth-child(3) { transition-delay: 0.3s; }
+.sidebar.active a:nth-child(4) { transition-delay: 0.4s; }
+.sidebar.active a:nth-child(5) { transition-delay: 0.5s; }
+.sidebar a:hover {
+    transform: scale(1.1) translateX(10px);
+    color: var(--accent-green);
+}
+
+        /* header & hamburger */
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.5rem; background: var(--bg); position: sticky; top: 0; z-index: 900;
+        }
+        .logo { font-size: 1.3rem; font-weight: 900; letter-spacing: 3px; }
+        .hamburger {
+            cursor: pointer; display: flex; flex-direction: column; gap: 8px; width: 30px;
+            transition: transform 0.3s var(--ease-bounce);
+        }
+        .hamburger:active { transform: scale(0.7) rotate(5deg); }
+        .hamburger span { display: block; height: 2px; background: var(--text); transition: 0.3s; }
+
+/* ticker with pause on hover */
+.ticker { 
+    background: #000; 
+    padding: 1.2rem 0; 
+    overflow: hidden; 
+    margin: 2rem 0; 
+    cursor: grab;
+}
+
+.ticker:active {
+    cursor: grabbing;
+}
+
+.ticker-wrapper {
+    display: inline-block;
+    white-space: nowrap;
+    animation: ticker 16s linear infinite;
+    padding-right: 2.5rem; /* Creates seamless loop */
+}
+
+.ticker-item {
+    display: inline-block; 
+    margin-right: 2.5rem; 
+    color: #aaa;
+    font-weight: 600; 
+    letter-spacing: 0.5px; 
+    font-size: 0.9rem;
+}
+
+/* Pause on hover */
+.ticker:hover .ticker-wrapper {
+    animation-play-state: paused;
+}
+
+@keyframes ticker { 
+    0% { transform: translateX(0); } 
+    100% { transform: translateX(-50%); } 
+}
+
+        /* why cards bouncy */
+        .why-grid { display: grid; gap: 1.2rem; }
+        .why-card {
+            background: white; padding: 1.8rem; border-radius: 24px;
+            transition: transform 0.3s var(--ease-bounce), box-shadow 0.3s;
+            border: 1px solid #eee;
+        }
+        .why-card:hover {
+            transform: translateY(-10px) scale(1.02) rotate(0.5deg);
+            box-shadow: 0 20px 25px -10px rgba(0,0,0,0.1);
+        }
+
+        /* process line */
+        .process-line { border-left: 3px solid #ccc; padding-left: 1.8rem; margin-left: 0.8rem; }
+        .process-step { margin-bottom: 3rem; position: relative; }
+        .process-step::before {
+            content: ''; position: absolute; left: -2.25rem; top: 0.2rem;
+            width: 16px; height: 16px; background: var(--text); border-radius: 50%;
+            transform: scale(0); transition: transform 0.5s var(--ease-bounce);
+        }
+        .process-step.active::before { transform: scale(1); }
+
+        /* capabilities card with elastic micro-interaction */
+        .cap-card {
+            position: relative; height: 220px; border-radius: 28px; overflow: hidden;
+            margin-bottom: 1.4rem; cursor: pointer; background: #222;
+            transition: transform 0.4s var(--ease-bounce), box-shadow 0.3s;
+        }
+        .cap-card:hover { transform: scale(1.01) translateY(-4px); box-shadow: 0 15px 25px -8px black; }
+        .cap-card:active { transform: scale(0.97); }
+        .cap-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; transition: 0.5s; }
+        .cap-card:hover .cap-img { transform: scale(1.1); opacity: 0.3; }
+        .cap-content {
+            position: absolute; bottom: 0; padding: 1.8rem; color: white;
+            background: linear-gradient(transparent, #000000cc);
+            width: 100%;
+        }
+        .cap-subtext {
+            max-height: 0; overflow: hidden; opacity: 0;
+            transition: max-height 0.5s var(--ease-bounce), opacity 0.4s, margin 0.3s;
+        }
+        .cap-card:hover .cap-subtext {
+            max-height: 100px; opacity: 1; margin-top: 8px;
+        }
+
+        /* bento (subtle reveal) */
+        .bento-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 2rem 0;
+        }
+        .bento-item {
+            background: #ddd; border-radius: 24px; height: 150px;
+            transition: transform 0.4s var(--ease-bounce);
+        }
+        .bento-item:hover { transform: scale(0.97) rotate(-0.5deg); }
+
+        /* button */
+        .btn {
+            display: inline-block; background: var(--text); color: white; padding: 18px 32px;
+            border-radius: 60px; font-weight: 700; text-decoration: none; margin-top: 1.2rem;
+            transition: transform 0.3s var(--ease-bounce), background 0.2s;
+            border: none; cursor: pointer; width: auto;
+        }
+        .btn:hover { transform: scale(1.05); background: #2b2b2b; }
+        .btn:active { transform: scale(0.9); }
+        
+        /* Additional bounce for Work with us button */
+.btn-bounce {
+    transition: transform 0.3s var(--ease-bounce) !important;
+}
+
+.btn-bounce:hover {
+    transform: scale(0.85) translateY(-5px) !important;
+}
+
+.btn-bounce:active {
+    transform: scale(0.85) !important;
+}
+
+
+/* WhatsApp Floating Button */
+.whatsapp-float {
+    position: fixed;
+    bottom: 30px;
+    right: 20px;
+    background: #25D366;
+    color: white;
+    width: 60px;
+    height: 60px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    text-decoration: none;
+    box-shadow: 0 10px 25px rgba(37, 211, 102, 0.4);
+    z-index: 999;
+    transition: all 0.3s var(--ease-bounce);
+    overflow: hidden;
+}
+
+.whatsapp-float:hover {
+    width: 140px;
+    background: #20b859;
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(37, 211, 102, 0.5);
+}
+
+.whatsapp-float i {
+    font-size: 23px;  /* Use font-size instead of transform */
+    line-height: 1;
+    margin: 5px;
+}
+
+.whatsapp-float span {
+    display: none;
+    font-weight: 600;
+    font-size: 1rem;
+    white-space: nowrap;
+}
+
+.whatsapp-float:hover span {
+    display: inline;
+}
+
+.whatsapp-float:active {
+    transform: scale(0.9) translateY(-5px);
+}
+
+
+        /* footer */
+        footer { background: #000; color: white; padding: 4rem 1.5rem; }
+        footer h2 { font-size: 3rem; line-height: 1; color: white; }
+
+/* FAQ functional styles */
+.faq-item {
+    border-bottom: 1px solid #ccc;
+    padding: 0;
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+.faq-question {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    padding: 1.5rem 0;
+    transition: padding 0.3s;
+}
+
+.faq-question span:first-child {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.faq-icon {
+    font-size: 2rem !important;
+    font-weight: 300;
+    line-height: 1;
+    transition: transform 0.4s var(--ease-bounce);
+    display: inline-block;
+}
+
+.faq-item.active .faq-icon {
+    transform: rotate(135deg);
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding: 0 1.5rem 0 0;
+    transition: max-height 0.5s var(--ease-bounce), opacity 0.4s, padding 0.3s;
+    color: #555;
+    line-height: 1.6;
+}
+
+.faq-item.active .faq-answer {
+    max-height: 200px;
+    opacity: 1;
+    padding-bottom: 1.5rem;
+}
+
+
+
+
+        /* misc */
+        section { padding: 2.5rem 1.5rem; }
+        h2 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 2rem; }
+        h1 { font-size: 3.2rem; line-height: 0.9; }
+        .text-blue { color: var(--accent-blue); }
+
+        /* ensure active overrides */
+        .reveal-fade-up.active, .reveal-slide-right.active, .reveal-zoom.active { opacity: 1; transform: none; }
+        
+        
+        
+        /* Category Card Styles */
+.category-card {
+    position: relative;
+    overflow: hidden;
+    will-change: transform;
+}
+
+.category-card:hover {
+    transform: scale(1.02) translateY(-5px);
+    box-shadow: 0 25px 30px -10px rgba(0,0,0,0.3);
+}
+
+.category-card:hover img {
+    transform: scale(1.1);
+}
+
+.category-card::after {
+    content: '↗';
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    color: white;
+    font-size: 1.5rem;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.4s var(--ease-bounce);
+    z-index: 3;
+    background: rgba(0,0,0,0.3);
+    width: 40px;
+    height: 40px;
+    border-radius: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+}
+
+.category-card:hover::after {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Category Filter Styles */
+.category-filter {
+    transition: all 0.3s var(--ease-bounce);
+}
+
+.category-filter.active {
+    background: #000 !important;
+    color: white !important;
+    transform: scale(1.05);
+}
+
+.category-filter:hover {
+    background: rgba(0,0,0,0.1) !important;
+    transform: scale(1.02);
+}
+
+/* Lightbox Gallery Styles */
+#galleryLightbox {
+    display: none;
+    opacity: 0;
+}
+
+#galleryLightbox.active {
+    display: block;
+    opacity: 1;
+}
+
+.gallery-item {
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.4s var(--ease-bounce);
+    background: #1a1a1a;
+    break-inside: avoid;
+}
+
+.gallery-item:hover {
+    transform: scale(1.03) translateY(-5px);
+    box-shadow: 0 20px 30px -5px rgba(255,255,255,0.1);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.5s var(--ease-bounce);
+}
+
+.gallery-item:hover img {
+    transform: scale(1.05);
+}
+
+.gallery-item .item-info {
+    padding: 15px;
+    background: white;
+    color: black;
+}
+
+.gallery-item .item-title {
+    font-weight: 800;
+    font-size: 1rem;
+}
+
+.gallery-item .item-subtitle {
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+/* Hide masonry items when filtered */
+.masonry-category.hidden,
+.category-card.hidden {
+    display: none;
+}
+    </style>
+</head>
+<body>
+  
+<!-- WhatsApp Floating Button with Bootstrap Icon -->
+<a href="https://wa.me/2349164712004?text=Hello%20OPSIS%20CANVAS%2C%20I'd%20like%20a%20quote" 
+   target="_blank" 
+   class="whatsapp-float">
+    <i class="bi bi-whatsapp"></i>
+    <span>Quote</span>
+</a>
+  
+  
+    <!-- sidebar overlay + nav -->
+    <div class="sidebar-overlay" id="overlay"></div>
+    <nav class="sidebar" id="sidebar">
+        <a href="Opsis-studio.html">The Studio</a>
+        <a href="Opsis-capable.html">Capabilities</a>
+        <a href="#">Lookbook</a>
+        <a href="Opsis-quote.html">Request Quote</a>
+        <a href="Opsis-contact.html">Contact</a>
+    </nav>
+
+    <div class="app-container">
+        <header>
+            <div class="logo">
+  <img src="OPSIS2.9.svg" alt="OPSIS Logo">
+</div>
+
+            <div class="hamburger" id="hamburger">
+                <span style="width:100%"></span>
+                <span style="width:70%; align-self:flex-end;"></span>
+            </div>
+        </header>
+
+        <!-- hero with immediate active (example) but also uses bounce -->
+        <section style="text-align: center; padding-top: 1rem;">
+            <h1 class="reveal-fade-up active" style="transition-delay:0s">The Standard <br><span class="text-blue">of Print.</span></h1>
+            <p class="reveal-slide-right active delay-1" style="margin:1.5rem 0">A Lagos-born design house obsessed with physical perfection.</p>
+            <a href="#" class="btn reveal-zoom active delay-2 btn-bounce">Work with us</a>
+        </section>
+
+<!-- ticker with pause on hover -->
+<div class="ticker">
+    <div class="ticker-wrapper">
+        <span class="ticker-item">GTCO</span>
+        <span class="ticker-item">Flutterwave</span>
+        <span class="ticker-item">Red Bull NG</span>
+        <span class="ticker-item">Arise TV</span>
+        <span class="ticker-item">Nomad</span>
+        <span class="ticker-item">GTCO</span>
+        <span class="ticker-item">Flutterwave</span>
+        <span class="ticker-item">Red Bull NG</span>
+        <span class="ticker-item">Arise TV</span>
+        <span class="ticker-item">Nomad</span>
+        <span class="ticker-item">GTCO</span>
+        <span class="ticker-item">Flutterwave</span>
+    </div>
+</div>
+
+        <!-- WHY OPSIS with staggered + bouncy reveal -->
+        <section id="why">
+            <h2 class="reveal-fade-up">Why OPSIS?</h2>
+            <div class="why-grid">
+              <div class="why-card reveal-fade-up delay-1" style="background: var(--accent-green);">
+    <i class="bi bi-crosshair" style="font-size: 1.8rem; margin-bottom: 1rem; display: block;"></i>
+    <h4>0.01mm Precision</h4>
+    <p>Heidelberg presses for micron‑accuracy.</p>
+</div>
+<div class="why-card reveal-slide-right delay-2">
+    <i class="bi bi-pencil-fill" style="font-size: 1.8rem; margin-bottom: 1rem; display: block;"></i>
+    <h4>Design‑Led</h4>
+    <p>We speak bleed, margins & typography.</p>
+</div>
+<div class="why-card reveal-zoom delay-3">
+    <i class="bi bi-truck" style="font-size: 1.8rem; margin-bottom: 1rem; display: block;"></i>
+    <h4>Island Delivery</h4>
+    <p>Same‑day VI, Ikoyi, Lekki.</p>
+</div>
+            </div>
+        </section>
+
+        <!-- PROCESS with slide + elastic step dots -->
+        <section id="process">
+            <h2 class="reveal-fade-up">Our Process</h2>
+            <div class="process-line">
+                <div class="process-step reveal-slide-right delay-1">
+                    <h3>The Creative Audit</h3>
+                    <p>CMYK + file prep, no surprises.</p>
+                </div>
+                <div class="process-step reveal-slide-right delay-2">
+                    <h3>Material Selection</h3>
+                    <p>50+ paper stocks, sustainable options.</p>
+                </div>
+                <div class="process-step reveal-slide-right delay-3">
+                    <h3>The Master Print</h3>
+                    <p>Real‑time monitoring, live colour checks.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CAPABILITIES with elastic cards + hidden subtext bounce -->
+        <section id="capabilities">
+            <h2 class="reveal-fade-up">Capabilities</h2>
+            <div class="cap-card reveal-zoom delay-1">
+    <img src="package.jpg" class="cap-img" alt="luxury box">
+    <div class="cap-content">
+        <i class="bi bi-box-seam" style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i>
+        <h3>Luxury Packaging</h3>
+        <div class="cap-subtext">Rigid boxes, magnetic closures, soft‑touch lamination.</div>
+    </div>
+</div>
+<div class="cap-card reveal-slide-right delay-2">
+    <img src="brand.jpg" class="cap-img" alt="branding">
+    <div class="cap-content">
+        <i class="bi bi-briefcase" style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i>
+        <h3>Corporate Identity</h3>
+        <div class="cap-subtext">Foil stamping, letterpress, embossed business cards.</div>
+    </div>
+</div>
+<div class="cap-card reveal-fade-up delay-3">
+    <img src="large.jpg" class="cap-img" alt="large format">
+    <div class="cap-content">
+        <i class="bi bi-images" style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i>
+        <h3>Large Format</h3>
+        <div class="cap-subtext">Billboards, window graphics, exhibition stands.</div>
+    </div>
+</div>
+        </section>
+
+<!-- MANSONRY LOOKBOOK - Interactive Category Gallery -->
+<section style="padding-top: 0; position: relative;">
+    
+    <!-- Section Header with Filter Toggle -->
+    <div style="display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 15px; margin-bottom: 1.5rem;">
+        <h2 class="reveal-fade-up" style="margin-bottom: 0;">Lookbook</h2>
+        
+        <!-- Category Filter Pills -->
+        <div class="reveal-slide-right delay-1" style="display: flex; gap: 8px; flex-wrap: wrap; background: rgba(0,0,0,0.03); padding: 5px; border-radius: 60px;">
+            <button class="category-filter active" data-filter="all" style="padding: 10px 20px; border-radius: 60px; border: none; background: #000; color: white; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.3s var(--ease-bounce);">All</button>
+            <button class="category-filter" data-filter="packaging" style="padding: 10px 20px; border-radius: 60px; border: none; background: transparent; color: #333; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.3s var(--ease-bounce);">Packaging</button>
+            <button class="category-filter" data-filter="cards" style="padding: 10px 20px; border-radius: 60px; border: none; background: transparent; color: #333; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.3s var(--ease-bounce);">Business Cards</button>
+            <button class="category-filter" data-filter="invitations" style="padding: 10px 20px; border-radius: 60px; border: none; background: transparent; color: #333; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.3s var(--ease-bounce);">Invitations</button>
+            <button class="category-filter" data-filter="brochures" style="padding: 10px 20px; border-radius: 60px; border: none; background: transparent; color: #333; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.3s var(--ease-bounce);">Brochures</button>
+        </div>
+    </div>
+    
+    <!-- Masonry Grid - Each card represents a category -->
+    <div id="masonryGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 2rem 0;">
+        
+        <!-- PACKAGING CATEGORY - Tall vertical piece -->
+        <div class="masonry-category" data-category="packaging" style="grid-row: span 2; height: 100%; display: flex; flex-direction: column; gap: 12px;">
+            <div class="category-card" data-category="packaging" data-type="rigid-boxes" onclick="openGallery('packaging', 'Rigid Boxes')" style="background: linear-gradient(145deg, #3b82f6, #2563eb); border-radius: 28px; height: 220px; transition: transform 0.4s var(--ease-bounce), box-shadow 0.3s; cursor: pointer; position: relative; overflow: hidden;">
+                <img src="https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?w=400" alt="Luxury packaging" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7; transition: transform 0.5s var(--ease-bounce);">
+                <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 1.5rem; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: white;">
+                    <div style="font-weight: 800; font-size: 1.2rem;">Rigid Boxes</div>
+                    <div style="font-size: 0.8rem; opacity: 0.9;">12 styles</div>
+                </div>
+            </div>
+            
+            <div class="category-card" data-category="packaging" data-type="magnetic-closure" onclick="openGallery('packaging', 'Magnetic Closure')" style="background: #000; border-radius: 28px; height: 140px; transition: transform 0.4s var(--ease-bounce), box-shadow 0.3s; cursor: pointer; position: relative; overflow: hidden;">
+                <img src="https://images.unsplash.com/photo-1611930022073-b7a4ba5fccb5?w=400" alt="Magnetic closure boxes" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7; transition: transform 0.5s var(--ease-bounce);">
+                <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 1rem; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: white;">
+                    <div style="font-weight: 800;">Magnetic Closure</div>
+                    <div style="font-size: 0.8rem;">8 styles</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right column categories -->
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            
+            <!-- BUSINESS CARDS CATEGORY -->
+            <div class="category-card" data-category="cards" data-type="business-cards" onclick="openGallery('cards', 'Business Cards')" style="background: #a3e635; border-radius: 28px; height: 120px; transition: transform 0.4s var(--ease-bounce), box-shadow 0.3s; cursor: pointer; position: relative; overflow: hidden;">
+                <img src="https://images.unsplash.com/photo-1607344645866-009c320b63e0?w=400" alt="Business cards" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7; transition: transform 0.5s var(--ease-bounce);">
+                <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 1rem; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: white;">
+                    <div style="font-weight: 800;">Business Cards</div>
+                    <div style="font-size: 0.8rem;">24 designs</div>
+                </div>
+            </div>
+            
+            <!-- INVITATIONS CATEGORY -->
+            <div class="category-card" data-category="invitations" data-type="invitations" onclick="openGallery('invitations', 'Invitations')" style="background: #f472b6; border-radius: 28px; height: 160px; transition: transform 0.4s var(--ease-bounce), box-shadow 0.3s; cursor: pointer; position: relative; overflow: hidden;">
+                <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400" alt="Wedding invitations" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7; transition: transform 0.5s var(--ease-bounce);">
+                <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 1rem; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: white;">
+                    <div style="font-weight: 800;">Invitations</div>
+                    <div style="font-size: 0.8rem;">18 styles</div>
+                </div>
+            </div>
+            
+            <!-- BROCHURES CATEGORY -->
+            <div class="category-card" data-category="brochures" data-type="brochures" onclick="openGallery('brochures', 'Brochures')" style="background: #a78bfa; border-radius: 28px; height: 100px; transition: transform 0.4s var(--ease-bounce), box-shadow 0.3s; cursor: pointer; position: relative; overflow: hidden;">
+                <img src="https://images.unsplash.com/photo-1544808203-0a4d9c86f1b8?w=400" alt="Brochures" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7; transition: transform 0.5s var(--ease-bounce);">
+                <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 1rem; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: white;">
+                    <div style="font-weight: 800;">Brochures</div>
+                    <div style="font-size: 0.8rem;">15 formats</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- FEATURED COLLECTION - Bottom full width -->
+        <div class="category-card" data-category="featured" onclick="openGallery('featured', '2025 Collection')" style="grid-column: span 2; background: #000; border-radius: 28px; height: 140px; display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; color: white; font-weight: 800; transition: transform 0.4s var(--ease-bounce), box-shadow 0.3s; cursor: pointer; position: relative; overflow: hidden;">
+            <img src="https://images.unsplash.com/photo-1541701494587-c5a79b2c7f43?w=400" alt="Collection" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.4; transition: transform 0.5s var(--ease-bounce);">
+            <span style="font-size: 1.5rem; position: relative; z-index: 2;">✨ 2025 Collection</span>
+            <span style="background: var(--accent-green); color: black; padding: 10px 25px; border-radius: 60px; font-size: 0.9rem; position: relative; z-index: 2;">View 30+ works →</span>
+        </div>
+    </div>
+    
+    <!-- Category Indicator -->
+    <div style="text-align: center; margin-top: 1rem; color: #666; font-size: 0.9rem;" id="categoryIndicator">
+        Click any card to explore designs
+    </div>
+</section>
+
+<!-- LIGHTBOX GALLERY - Shows multiple images per category -->
+<div id="galleryLightbox" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: none; opacity: 0; transition: opacity 0.4s ease; backdrop-filter: blur(10px);">
+    
+    <!-- Close button -->
+    <div style="position: absolute; top: 20px; right: 20px; z-index: 2001;">
+        <button onclick="closeGallery()" style="width: 50px; height: 50px; border-radius: 50%; background: white; border: none; font-size: 2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.3s var(--ease-bounce);">×</button>
+    </div>
+    
+    <!-- Gallery Header -->
+    <div style="position: absolute; top: 20px; left: 20px; color: white; z-index: 2001;">
+        <h3 id="galleryTitle" style="font-size: 2rem; font-weight: 800; margin: 0;">Category</h3>
+        <p id="gallerySubtitle" style="opacity: 0.7; margin: 5px 0 0;">Click images to enlarge</p>
+    </div>
+    
+    <!-- Masonry Gallery Grid -->
+    <div style="position: absolute; top: 100px; left: 20px; right: 20px; bottom: 20px; overflow-y: auto; padding: 20px;">
+        <div id="galleryGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; align-items: start;">
+            <!-- Images will be injected here by JavaScript -->
+        </div>
+    </div>
+</div>
+        
+        
+        
+<!-- TEAM SECTION - Modern Stacked Circles + Trust Copy -->
+<section id="team" style="margin: 4rem 0; padding: 2rem 1.5rem; background: linear-gradient(to bottom, #f7f6f0, #ffffff); border-radius: 60px;">
+    
+    <!-- The stacked circles (modern style) -->
+    <div style="display: flex; flex-direction: column; margin-bottom: 2.5rem;">
+        
+        <!-- Stacked circles container -->
+        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+            
+            <!-- Circle 1 -->
+            <div class="reveal-zoom delay-1" style="width: 60px; height: 60px; border-radius: 60px; background: linear-gradient(135deg, #a3e635, #86c42a); border: 3px solid white; margin-right: -15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; color: black; font-weight: 800; position: relative; z-index: 5;">A</div>
+            
+            <!-- Circle 2 -->
+            <div class="reveal-zoom delay-2" style="width: 60px; height: 60px; border-radius: 60px; background: linear-gradient(135deg, #3b82f6, #2563eb); border: 3px solid white; margin-right: -15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; position: relative; z-index: 4;">Z</div>
+            
+            <!-- Circle 3 -->
+            <div class="reveal-zoom delay-3" style="width: 60px; height: 60px; border-radius: 60px; background: linear-gradient(135deg, #f472b6, #ec4899); border: 3px solid white; margin-right: -15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; position: relative; z-index: 3;">C</div>
+            
+            <!-- Circle 4 -->
+            <div class="reveal-zoom delay-1" style="width: 60px; height: 60px; border-radius: 60px; background: linear-gradient(135deg, #a78bfa, #8b5cf6); border: 3px solid white; margin-right: -15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; position: relative; z-index: 2;">T</div>
+            
+            <!-- The LAST CIRCLE with number (20+ experience) -->
+            <div class="reveal-zoom delay-2" style="width: 70px; height: 70px; border-radius: 70px; background: #000; border: 3px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 1.4rem; position: relative; z-index: 1; margin-left: 5px;">20+</div>
+            
+        </div>
+        
+        <!-- Small text UNDERNEATH the circles (moved here) -->
+        <div class="reveal-slide-right delay-3" style="font-size: 1rem; font-weight: 600; background: rgba(0,0,0,0.05); padding: 8px 18px; border-radius: 50px; display: inline-block; align-self: flex-start;">
+            ⚡ 500+ projects delivered
+        </div>
+        
+    </div>
+    
+    <!-- TRUST-BUILDING WRITE-UP (The main copy) -->
+    <div style="max-width: 90%;">
+        
+        <h3 class="reveal-fade-up" style="font-size: 2.2rem; font-weight: 800; line-height: 1.2; margin-bottom: 1rem;">
+            Crafted by <span style="color: var(--accent-pink);">masters</span> who've<br>been mixing ink since 2006
+        </h3>
+        
+        <p class="reveal-slide-right delay-1" style="font-size: 1.1rem; line-height: 1.6; color: #333; margin-bottom: 1.5rem;">
+            Every sheet that leaves our studio passes through hands with <strong>15+ years of Heidelberg experience</strong>. 
+            We don't just print — we obsess over registration, dot gain, and the way light catches a soft-touch laminate.
+        </p>
+        
+        <div class="reveal-fade-up delay-2" style="display: flex; gap: 20px; flex-wrap: wrap;">
+            
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 30px; height: 30px; background: var(--accent-green); border-radius: 30px; display: flex; align-items: center; justify-content: center; font-weight: 900;">✓</div>
+                <span style="font-weight: 600;">ISO-certified process</span>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 30px; height: 30px; background: var(--accent-green); border-radius: 30px; display: flex; align-items: center; justify-content: center; font-weight: 900;">✓</div>
+                <span style="font-weight: 600;">Pantone matching guaranteed</span>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 30px; height: 30px; background: var(--accent-green); border-radius: 30px; display: flex; align-items: center; justify-content: center; font-weight: 900;">✓</div>
+                <span style="font-weight: 600;">Same-day Lagos delivery</span>
+            </div>
+            
+        </div>
+        
+        <!-- Trust badge / stats -->
+        <div style="display: flex; gap: 25px; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px dashed #ccc;">
+            <div>
+                <span style="font-size: 2rem; font-weight: 900;">15+</span>
+                <p style="font-size: 0.9rem; color: #555;">Years combined<br>press experience</p>
+            </div>
+            <div>
+                <span style="font-size: 2rem; font-weight: 900;">200+</span>
+                <p style="font-size: 0.9rem; color: #555;">Global brands<br>trust us</p>
+            </div>
+            <div>
+                <span style="font-size: 2rem; font-weight: 900;">0.01mm</span>
+                <p style="font-size: 0.9rem; color: #555;">Registration<br>accuracy</p>
+            </div>
+        </div>
+        
+    </div>
+    <!-- After the stats, before closing the team section -->
+<div style="display: flex; gap: 15px; margin-top: 2rem;">
+    <a href="#" style="width: 45px; height: 45px; background: #000; border-radius: 45px; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: transform 0.3s var(--ease-bounce);"><i class="bi bi-linkedin"></i></a>
+    <a href="#" style="width: 45px; height: 45px; background: #000; border-radius: 45px; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: transform 0.3s var(--ease-bounce);"><i class="bi bi-instagram"></i></a>
+    <a href="#" style="width: 45px; height: 45px; background: #000; border-radius: 45px; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: transform 0.3s var(--ease-bounce);"><i class="bi bi-envelope-fill"></i></a>
+</div>
+</section>
+
+
+<!-- CUSTOMER REVIEWS SECTION - Netflix Style -->
+<section id="reviews" style="background: #fff9f0; border-radius: 40px; padding: 2.5rem 1.5rem; margin: 2rem 0; overflow: hidden;">
+    <h2 class="reveal-fade-up">Kind <span style="color: var(--accent-blue);">Words</span></h2>
+    
+    <div class="reviews-container-netflix" style="overflow: hidden; cursor: grab; margin: 1rem 0; padding: 10px 0;">
+        <div class="reviews-scroll-netflix" style="display: flex; gap: 20px; animation: scrollNetflix 30s linear infinite; width: fit-content; padding: 10px 0 20px;">
+            
+            <!-- Card 1 - Tunde K. -->
+            <div class="review-card-netflix" style="flex: 0 0 280px; background: white; border-radius: 30px; padding: 1.8rem; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #eee; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; overflow: hidden;">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                    <div style="width: 50px; height: 50px; background: var(--accent-green); border-radius: 50px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: black;">TK</div>
+                    <div>
+                        <h4 style="font-weight: 800; margin:0;">Tunde K.</h4>
+                        <p style="font-size: 0.8rem; margin:0;">GTCO</p>
+                    </div>
+                </div>
+                <p style="line-height: 1.6; margin:0;">"The packaging OPSIS delivered for our corporate gifts was flawless. Precision down to 0.1mm. They understand brand standards."</p>
+                <div style="margin-top: 15px; color: gold;">⭐⭐⭐⭐⭐</div>
+            </div>
+            
+            <!-- Card 2 - Folake A. -->
+            <div class="review-card-netflix" style="flex: 0 0 280px; background: white; border-radius: 30px; padding: 1.8rem; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #eee; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; overflow: hidden;">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                    <div style="width: 50px; height: 50px; background: var(--accent-pink); border-radius: 50px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: white;">FA</div>
+                    <div>
+                        <h4 style="font-weight: 800; margin:0;">Folake A.</h4>
+                        <p style="font-size: 0.8rem; margin:0;">Red Bull NG</p>
+                    </div>
+                </div>
+                <p style="line-height: 1.6; margin:0;">"Quick turnaround and exceptional quality. Our activation materials arrived ahead of schedule and looked premium."</p>
+                <div style="margin-top: 15px; color: gold;">⭐⭐⭐⭐⭐</div>
+            </div>
+            
+            <!-- Card 3 - Chuka O. -->
+            <div class="review-card-netflix" style="flex: 0 0 280px; background: white; border-radius: 30px; padding: 1.8rem; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #eee; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; overflow: hidden;">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                    <div style="width: 50px; height: 50px; background: var(--accent-blue); border-radius: 50px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: white;">CO</div>
+                    <div>
+                        <h4 style="font-weight: 800; margin:0;">Chuka O.</h4>
+                        <p style="font-size: 0.8rem; margin:0;">Flutterwave</p>
+                    </div>
+                </div>
+                <p style="line-height: 1.6; margin:0;">"Worked with Zainab on our brand kit. The foil stamping and embossing exceeded expectations. Will definitely return."</p>
+                <div style="margin-top: 15px; color: gold;">⭐⭐⭐⭐⭐</div>
+            </div>
+            
+            <!-- Card 4 - Simi L. -->
+            <div class="review-card-netflix" style="flex: 0 0 280px; background: white; border-radius: 30px; padding: 1.8rem; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #eee; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; overflow: hidden;">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                    <div style="width: 50px; height: 50px; background: #a78bfa; border-radius: 50px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: white;">SI</div>
+                    <div>
+                        <h4 style="font-weight: 800; margin:0;">Simi L.</h4>
+                        <p style="font-size: 0.8rem; margin:0;">Arise TV</p>
+                    </div>
+                </div>
+                <p style="line-height: 1.6; margin:0;">"Large format printing that actually looks good up close. The team understood our visual identity perfectly."</p>
+                <div style="margin-top: 15px; color: gold;">⭐⭐⭐⭐⭐</div>
+            </div>
+            
+            <!-- DUPLICATES - For seamless infinite loop -->
+            
+            <!-- Card 1 Duplicate -->
+            <div class="review-card-netflix" style="flex: 0 0 280px; background: white; border-radius: 30px; padding: 1.8rem; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #eee; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; overflow: hidden;">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                    <div style="width: 50px; height: 50px; background: var(--accent-green); border-radius: 50px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: black;">TK</div>
+                    <div>
+                        <h4 style="font-weight: 800; margin:0;">Tunde K.</h4>
+                        <p style="font-size: 0.8rem; margin:0;">GTCO</p>
+                    </div>
+                </div>
+                <p style="line-height: 1.6; margin:0;">"The packaging OPSIS delivered for our corporate gifts was flawless. Precision down to 0.1mm. They understand brand standards."</p>
+                <div style="margin-top: 15px; color: gold;">⭐⭐⭐⭐⭐</div>
+            </div>
+            
+            <!-- Card 2 Duplicate -->
+            <div class="review-card-netflix" style="flex: 0 0 280px; background: white; border-radius: 30px; padding: 1.8rem; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #eee; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; overflow: hidden;">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                    <div style="width: 50px; height: 50px; background: var(--accent-pink); border-radius: 50px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: white;">FA</div>
+                    <div>
+                        <h4 style="font-weight: 800; margin:0;">Folake A.</h4>
+                        <p style="font-size: 0.8rem; margin:0;">Red Bull NG</p>
+                    </div>
+                </div>
+                <p style="line-height: 1.6; margin:0;">"Quick turnaround and exceptional quality. Our activation materials arrived ahead of schedule and looked premium."</p>
+                <div style="margin-top: 15px; color: gold;">⭐⭐⭐⭐⭐</div>
+            </div>
+            
+        </div>
+    </div>
+    
+    <style>
+        @keyframes scrollNetflix {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc(-300px * 4 - 80px)); }
+        }
+        .reviews-container-netflix {
+            cursor: grab;
+            user-select: none;
+        }
+        .reviews-container-netflix:active {
+            cursor: grabbing;
+        }
+        .reviews-container-netflix:hover .reviews-scroll-netflix {
+            animation-play-state: paused;
+        }
+        .review-card-netflix {
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+            position: relative;
+            overflow: hidden;
+            will-change: transform;
+        }
+        .review-card-netflix:hover {
+            transform: scale(1.08) translateY(-8px) !important;
+            box-shadow: 0 30px 40px -5px rgba(59, 130, 246, 0.3) !important;
+            border-color: var(--accent-blue) !important;
+            background: white !important;
+            z-index: 10;
+        }
+        .review-card-netflix::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .review-card-netflix:hover::before {
+            left: 100%;
+        }
+        /* Smooth animation */
+        .reviews-scroll-netflix {
+            animation: scrollNetflix 30s linear infinite;
+            will-change: transform;
+        }
+    </style>
+    
+    <div style="text-align: center; margin-top: 1rem;">
+        <a href="#" style="display: inline-flex; align-items: center; gap: 10px; background: transparent; padding: 12px 25px; border-radius: 60px; border: 1px solid #000; text-decoration: none; color: black; font-weight: 600; transition: all 0.3s ease;">Read more reviews <span style="font-size: 1.5rem;">→</span></a>
+    </div>
+</section>
+        
+        
+        
+
+ <!-- FAQ sample (functional with animated plus/minus) -->
+<section>
+    <h2 class="reveal-slide-right">faq</h2>
+    <div class="faq-sample">
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>turnaround time ?</span>
+                <span class="faq-icon">+</span>
+            </div>
+            <div class="faq-answer">Standard turnaround is 3-5 business days. Rush orders (24-48hrs) available at 30% surcharge.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>do you ship internationally ?</span>
+                <span class="faq-icon">+</span>
+            </div>
+            <div class="faq-answer">Yes, we ship worldwide via DHL Express. Shipping costs calculated at checkout.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>minimum order ?</span>
+                <span class="faq-icon">+</span>
+            </div>
+            <div class="faq-answer">Minimum order is 50 units for business cards, 20 units for brochures, and 10 units for luxury packaging.</div>
+        </div>
+    </div>
+</section>
+
+        <!-- FOOTER with final bouncy CTA -->
+       <footer>
+    <h2 class="reveal-fade-up">Let's build <br>your brand.</h2>
+    <a href="#" class="btn reveal-zoom delay-2" style="background: var(--accent-green); color: black;">Start Project →</a>
+    
+    
+    
+    <!-- Contact info with icons -->
+    <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #333; text-align: left;">
+        <p style="display: flex; align-items: center; gap: 10px; margin-bottom: 0.8rem;"><i class="bi bi-geo-alt-fill" style="color: var(--accent-green);"></i> 12 Bourdillon Road, Ikoyi, Lagos</p>
+        <p style="display: flex; align-items: center; gap: 10px; margin-bottom: 0.8rem;"><i class="bi bi-telephone-fill" style="color: var(--accent-green);"></i> +234 916 471 2004</p>
+        <p style="display: flex; align-items: center; gap: 10px;"><i class="bi bi-envelope-fill" style="color: var(--accent-green);"></i> hello@opsis.ng</p>
+    </div>
+</footer>
+    </div>
+
+    <script>
+        (function() {
+            // --- HAMBURGER / SIDEBAR with elastic animation
+            const ham = document.getElementById('hamburger');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            const spans = ham.querySelectorAll('span');
+
+            function toggleSidebar(e) {
+                e?.stopPropagation();
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+
+                if (sidebar.classList.contains('active')) {
+                    spans[0].style.transform = 'translateY(10px) rotate(45deg)';
+                    spans[1].style.transform = 'translateY(-8px) rotate(-45deg)';
+                    spans[1].style.width = '100%';
+                } else {
+                    spans[0].style.transform = 'none';
+                    spans[1].style.transform = 'none';
+                    spans[1].style.width = '70%';
+                }
+            }
+
+            ham.addEventListener('click', toggleSidebar);
+            overlay.addEventListener('click', toggleSidebar);
+
+            // --- INTERSECTION OBSERVER (scroll reveals with bouncy transition)
+            const observerOptions = {
+                threshold: 0.15,
+                rootMargin: '0px 0px -30px 0px'  // slight offset for better feel
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        // optional: keep observing to avoid flicker, but we don't remove
+                    }
+                });
+            }, observerOptions);
+
+            // target all elements with reveal classes + process-step
+            const revealElements = document.querySelectorAll(
+                '.reveal-fade-up, .reveal-slide-right, .reveal-zoom, .process-step'
+            );
+            revealElements.forEach(el => observer.observe(el));
+
+            // manual pre-check for elements already visible (just in case)
+            // but observer will handle
+
+// FAQ toggle with plus/minus animation
+document.querySelectorAll('.faq-item').forEach(item => {
+    item.addEventListener('click', () => {
+        // Optional: close other items (uncomment if you want accordion behavior)
+        // document.querySelectorAll('.faq-item').forEach(otherItem => {
+        //     if (otherItem !== item) otherItem.classList.remove('active');
+        // });
+        item.classList.toggle('active');
+    });
+});
+
+            // tiny extra: process steps are also observed, so they get .active and show dots
+            // we also want to add active to .process-step when visible (already in observer list)
+            // but note: .process-step also gets .active -> triggers dot scale(1) via css
+        })();
+    </script>
+    <!-- ensure any already visible get activated (like process steps maybe) -->
+    <script>
+        (function secondPass(){
+            // fallback: trigger for elements already in view
+            const allReveal = document.querySelectorAll('.reveal-fade-up, .reveal-slide-right, .reveal-zoom, .process-step');
+            const observerFast = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if(entry.isIntersecting) entry.target.classList.add('active');
+                });
+            }, { threshold: 0.1 });
+            allReveal.forEach(el => observerFast.observe(el));
+        })();
+        
+        
+        
+(function() {
+    // Image database for each category (in production, this would come from a CMS)
+    const categoryImages = {
+        packaging: [
+            { url: 'https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?w=600', title: 'Rigid Box - Matte Black', type: 'Rigid Box', dimensions: '8"×6"×2"' },
+            { url: 'https://images.unsplash.com/photo-1611930022073-b7a4ba5fccb5?w=600', title: 'Magnetic Closure - Luxury', type: 'Magnetic Box', dimensions: '10"×8"×3"' },
+            { url: 'https://images.unsplash.com/photo-1603126857599-f6e4cff0fe8a?w=600', title: 'Sleeve Box - Gold Foil', type: 'Sleeve Box', dimensions: '9"×6"×1.5"' },
+            { url: 'https://images.unsplash.com/photo-1611930022073-b7a4ba5fccb5?w=600', title: 'Rigid Box - Soft Touch', type: 'Rigid Box', dimensions: '7"×5"×2"' },
+            { url: 'https://images.unsplash.com/photo-1541701494587-c5a79b2c7f43?w=600', title: 'Display Box - Window', type: 'Display Box', dimensions: '12"×8"×4"' },
+            { url: 'https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?w=600', title: 'Gift Box - Ribbon', type: 'Gift Box', dimensions: '8"×8"×3"' }
+        ],
+        
+        cards: [
+            { url: 'https://images.unsplash.com/photo-1607344645866-009c320b63e0?w=600', title: 'Standard Business Card', type: 'Standard', dimensions: '3.5"×2"' },
+            { url: 'https://images.unsplash.com/photo-1603792457359-3c5a5fcfb19c?w=600', title: 'Square Business Card', type: 'Square', dimensions: '2.5"×2.5"' },
+            { url: 'https://images.unsplash.com/photo-1603791445824-0050bd436162?w=600', title: 'Foil Stamped - Gold', type: 'Premium', dimensions: '3.5"×2"' },
+            { url: 'https://images.unsplash.com/photo-1603792457359-3c5a5fcfb19c?w=600', title: 'Letterpress - Thick Stock', type: 'Letterpress', dimensions: '3.5"×2"' },
+            { url: 'https://images.unsplash.com/photo-1607344645866-009c320b63e0?w=600', title: 'Rounded Corner Cards', type: 'Specialty', dimensions: '3.5"×2"' },
+            { url: 'https://images.unsplash.com/photo-1603791445824-0050bd436162?w=600', title: 'Duo-Tone Cards', type: 'Creative', dimensions: '3.5"×2"' }
+        ],
+        
+        invitations: [
+            { url: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600', title: 'Wedding Invitation Suite', type: 'Wedding', dimensions: '5"×7"' },
+            { url: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=600', title: 'Birthday Invitation', type: 'Celebration', dimensions: '4"×6"' },
+            { url: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600', title: 'Corporate Event', type: 'Corporate', dimensions: '5"×7"' },
+            { url: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=600', title: 'Save the Date', type: 'Announcement', dimensions: '4"×6"' },
+            { url: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600', title: 'Gala Dinner', type: 'Formal', dimensions: '6"×9"' },
+            { url: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=600', title: 'Engagement Party', type: 'Celebration', dimensions: '5"×7"' }
+        ],
+        
+        brochures: [
+            { url: 'https://images.unsplash.com/photo-1544808203-0a4d9c86f1b8?w=600', title: 'Tri-Fold Brochure', type: 'Tri-Fold', dimensions: '8.5"×11" folded' },
+            { url: 'https://images.unsplash.com/photo-1544808203-0a4d9c86f1b8?w=600', title: 'Bi-Fold Brochure', type: 'Bi-Fold', dimensions: '9"×12" folded' },
+            { url: 'https://images.unsplash.com/photo-1544808203-0a4d9c86f1b8?w=600', title: 'Z-Fold Brochure', type: 'Z-Fold', dimensions: '8.5"×11" folded' },
+            { url: 'https://images.unsplash.com/photo-1544808203-0a4d9c86f1b8?w=600', title: 'Gate Fold Brochure', type: 'Gate Fold', dimensions: '10"×12" folded' },
+            { url: 'https://images.unsplash.com/photo-1544808203-0a4d9c86f1b8?w=600', title: 'French Fold Brochure', type: 'French Fold', dimensions: '8.5"×14" folded' },
+            { url: 'https://images.unsplash.com/photo-1544808203-0a4d9c86f1b8?w=600', title: 'Booklet Style', type: 'Booklet', dimensions: '5.5"×8.5"' }
+        ],
+        
+        featured: [
+            { url: 'https://images.unsplash.com/photo-1541701494587-c5a79b2c7f43?w=600', title: '2025 Collection - Spring', type: 'Featured', dimensions: 'Various' },
+            { url: 'https://images.unsplash.com/photo-1541701494587-c5a79b2c7f43?w=600', title: '2025 Collection - Summer', type: 'Featured', dimensions: 'Various' },
+            { url: 'https://images.unsplash.com/photo-1541701494587-c5a79b2c7f43?w=600', title: '2025 Collection - Fall', type: 'Featured', dimensions: 'Various' },
+            { url: 'https://images.unsplash.com/photo-1541701494587-c5a79b2c7f43?w=600', title: '2025 Collection - Winter', type: 'Featured', dimensions: 'Various' }
+        ]
+    };
+
+    // Category filtering
+    const filters = document.querySelectorAll('.category-filter');
+    const categories = document.querySelectorAll('.masonry-category, .category-card');
+    const indicator = document.getElementById('categoryIndicator');
+
+    filters.forEach(filter => {
+        filter.addEventListener('click', () => {
+            // Update active state
+            filters.forEach(f => {
+                f.classList.remove('active');
+                f.style.background = 'transparent';
+                f.style.color = '#333';
+            });
+            
+            filter.classList.add('active');
+            filter.style.background = '#000';
+            filter.style.color = 'white';
+            
+            const filterValue = filter.dataset.filter;
+            
+            // Filter categories
+            categories.forEach(category => {
+                if (filterValue === 'all' || category.dataset.category === filterValue) {
+                    category.classList.remove('hidden');
+                } else {
+                    category.classList.add('hidden');
+                }
+            });
+            
+            indicator.innerHTML = `Showing: <strong>${filter.textContent}</strong>`;
+        });
+    });
+
+    // Make openGallery function global
+    window.openGallery = function(category, title) {
+        const lightbox = document.getElementById('galleryLightbox');
+        const galleryGrid = document.getElementById('galleryGrid');
+        const galleryTitle = document.getElementById('galleryTitle');
+        
+        // Set title
+        galleryTitle.textContent = title;
+        
+        // Clear and populate grid
+        galleryGrid.innerHTML = '';
+        
+        const images = categoryImages[category] || categoryImages.packaging;
+        
+        images.forEach((img, index) => {
+            const item = document.createElement('div');
+            item.className = 'gallery-item';
+            item.innerHTML = `
+                <img src="${img.url}" alt="${img.title}" loading="lazy">
+                <div class="item-info">
+                    <div class="item-title">${img.title}</div>
+                    <div class="item-subtitle">${img.type} • ${img.dimensions}</div>
+                </div>
+            `;
+            
+            item.addEventListener('click', () => {
+                // Optional: open full-size image
+                window.open(img.url, '_blank');
+            });
+            
+            galleryGrid.appendChild(item);
+        });
+        
+        // Show lightbox
+        lightbox.classList.add('active');
+        lightbox.style.display = 'block';
+        setTimeout(() => {
+            lightbox.style.opacity = '1';
+        }, 50);
+        
+        // Prevent body scroll
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeGallery = function() {
+        const lightbox = document.getElementById('galleryLightbox');
+        lightbox.style.opacity = '0';
+        setTimeout(() => {
+            lightbox.classList.remove('active');
+            lightbox.style.display = 'none';
+        }, 400);
+        
+        // Restore body scroll
+        document.body.style.overflow = 'auto';
+    };
+
+    // Close on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeGallery();
+        }
+    });
+
+    // Close on overlay click
+    document.getElementById('galleryLightbox').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('galleryLightbox')) {
+            closeGallery();
+        }
+    });
+
+    // Initialize observer for animations
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.category-card').forEach(card => {
+        observer.observe(card);
+    });
+
+})();
+    </script>
+    <!-- note: the .active class for process-step also makes the pseudo dot bounce -->
+</body>
+</html>

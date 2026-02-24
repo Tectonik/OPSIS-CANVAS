@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPSIS | The Studio — craft & precision</title>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* ----- ELASTIC / BOUNCY FOUNDATION (same as landing) ----- */
+        :root {
+            --bg: #f7f6f0;
+            --text: #111;
+            --accent-green: #a3e635;
+            --accent-blue: #3b82f6;
+            --accent-pink: #f472b6;
+            --accent-red: #FF385C;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --ease-out-soft: cubic-bezier(0.25, 1, 0.5, 1);
+            --ease-elastic-heavy: cubic-bezier(0.68, -0.6, 0.32, 1.6);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font);
+            background-color: #e2e0d6;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 480px;
+            width: 100%;
+            background-color: var(--bg);
+            min-height: 100vh;
+            box-shadow: 0 0 30px rgba(0,0,0,0.08);
+            position: relative;
+        }
+
+        /* ----- REVEAL classes (same) ----- */
+        .reveal-fade-up {
+            opacity: 0;
+            transform: translateY(40px) scale(0.98);
+            transition: transform 0.9s var(--ease-bounce), opacity 0.7s var(--ease-out-soft);
+        }
+        .reveal-fade-up.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .reveal-slide-right {
+            opacity: 0;
+            transform: translateX(-30px) skewX(-2deg);
+            transition: transform 0.9s var(--ease-bounce), opacity 0.8s var(--ease-out-soft);
+        }
+        .reveal-slide-right.active {
+            opacity: 1;
+            transform: translateX(0) skewX(0);
+        }
+        .reveal-zoom {
+            opacity: 0;
+            transform: scale(0.7) rotate(-1deg);
+            transition: transform 0.9s var(--ease-elastic-heavy), opacity 0.8s ease;
+        }
+        .reveal-zoom.active {
+            opacity: 1;
+            transform: scale(1) rotate(0);
+        }
+        .delay-1 { transition-delay: 0.05s; }
+        .delay-2 { transition-delay: 0.15s; }
+        .delay-3 { transition-delay: 0.25s; }
+        .delay-4 { transition-delay: 0.4s; }
+
+        /* ----- SIDEBAR (same bottom sheet) ----- */
+        .sidebar {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            width: 100%;
+            height: auto;
+            max-height: 80vh;
+            background: #111;
+            z-index: 1000;
+            transition: bottom 0.6s var(--ease-bounce);
+            padding: 3rem 2rem;
+            color: white;
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.3);
+        }
+        .sidebar.active { bottom: 0; }
+        .sidebar-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .sidebar-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .sidebar a {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin: 0.5rem 0;
+            transform: scale(0.8);
+            opacity: 0;
+            transition: transform 0.5s var(--ease-bounce), opacity 0.4s;
+            transform-origin: left;
+        }
+        .sidebar.active a {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .sidebar.active a:nth-child(1) { transition-delay: 0.1s; }
+        .sidebar.active a:nth-child(2) { transition-delay: 0.2s; }
+        .sidebar.active a:nth-child(3) { transition-delay: 0.3s; }
+        .sidebar.active a:nth-child(4) { transition-delay: 0.4s; }
+        .sidebar.active a:nth-child(5) { transition-delay: 0.5s; }
+        .sidebar a:hover {
+            transform: scale(1.1) translateX(10px);
+            color: var(--accent-green);
+        }
+
+        /* ----- HEADER & HAMBURGER ----- */
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.5rem; background: var(--bg); position: sticky; top: 0; z-index: 900;
+        }
+        .logo { font-size: 1.3rem; font-weight: 900; letter-spacing: 3px; }
+        .hamburger {
+            cursor: pointer; display: flex; flex-direction: column; gap: 8px; width: 30px;
+            transition: transform 0.3s var(--ease-bounce);
+        }
+        .hamburger:active { transform: scale(0.7) rotate(5deg); }
+        .hamburger span { display: block; height: 2px; background: var(--text); transition: 0.3s; }
+
+        /* ----- WHATSAPP FLOAT (same) ----- */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            right: 20px;
+            background: #25D366;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            text-decoration: none;
+            box-shadow: 0 10px 25px rgba(37, 211, 102, 0.4);
+            z-index: 999;
+            transition: all 0.3s var(--ease-bounce);
+            overflow: hidden;
+        }
+        .whatsapp-float:hover {
+            width: 140px;
+            background: #20b859;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(37, 211, 102, 0.5);
+        }
+        .whatsapp-float i {
+            font-size: 23px;
+            line-height: 1;
+            margin: 5px;
+        }
+        .whatsapp-float span {
+            display: none;
+            font-weight: 600;
+            font-size: 1rem;
+            white-space: nowrap;
+        }
+        .whatsapp-float:hover span {
+            display: inline;
+        }
+        .whatsapp-float:active {
+            transform: scale(0.9) translateY(-5px);
+        }
+
+        /* ----- FOOTER (same style) ----- */
+        footer { background: #000; color: white; padding: 4rem 1.5rem; }
+        footer h2 { font-size: 3rem; line-height: 1; color: white; }
+
+        /* ----- BUTTONS (same bounce) ----- */
+        .btn {
+            display: inline-block; background: var(--text); color: white; padding: 18px 32px;
+            border-radius: 60px; font-weight: 700; text-decoration: none; margin-top: 1.2rem;
+            transition: transform 0.3s var(--ease-bounce), background 0.2s;
+            border: none; cursor: pointer; width: auto;
+        }
+        .btn:hover { transform: scale(1.05); background: #2b2b2b; }
+        .btn:active { transform: scale(0.9); }
+
+        /* ----- NEW STUDIO-SPECIFIC STYLES (fresh layout) ----- */
+        section { padding: 2.5rem 1.5rem; }
+        h2 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 2rem; }
+        h3 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; }
+
+        /* studio hero */
+        .studio-hero {
+            text-align: left;
+            padding-top: 1rem;
+            padding-bottom: 0;
+        }
+        .hero-flag {
+            display: inline-block;
+            background: var(--accent-green);
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* story grid */
+        .story-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        .story-highlight {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            border: 1px solid #eee;
+            transition: transform 0.3s var(--ease-bounce);
+        }
+        .story-highlight:hover {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 15px 25px -10px rgba(0,0,0,0.1);
+        }
+        .story-highlight i {
+            font-size: 2rem;
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+        }
+
+        /* team grid */
+        .team-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .team-card {
+            background: white;
+            border-radius: 28px;
+            overflow: hidden;
+            transition: transform 0.4s var(--ease-bounce), box-shadow 0.3s;
+            border: 1px solid #f0f0f0;
+        }
+        .team-card:hover {
+            transform: scale(1.02) translateY(-6px);
+            box-shadow: 0 25px 30px -12px rgba(0,0,0,0.15);
+        }
+        .team-img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            transition: transform 0.6s var(--ease-bounce);
+        }
+        .team-card:hover .team-img {
+            transform: scale(1.08);
+        }
+        .team-info {
+            padding: 1.2rem;
+        }
+        .team-name {
+            font-weight: 800;
+            font-size: 1.2rem;
+        }
+        .team-role {
+            color: #666;
+            font-size: 0.85rem;
+            margin: 0.2rem 0 0.5rem;
+        }
+
+        /* studio space gallery (mini) */
+        .space-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .space-item {
+            border-radius: 24px;
+            overflow: hidden;
+            aspect-ratio: 1 / 1;
+            transition: transform 0.4s var(--ease-bounce);
+        }
+        .space-item:hover {
+            transform: scale(0.98) rotate(-0.8deg);
+        }
+        .space-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .space-item.span-2 {
+            grid-column: span 2;
+            aspect-ratio: 16 / 9;
+        }
+
+        /* equipment list (icon grid) */
+        .equip-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin: 2rem 0;
+        }
+        .equip-item {
+            background: white;
+            border-radius: 40px;
+            padding: 1.5rem 0.8rem;
+            text-align: center;
+            border: 1px solid #eee;
+            transition: transform 0.3s var(--ease-bounce);
+        }
+        .equip-item:hover {
+            transform: scale(1.05) translateY(-5px);
+            background: var(--accent-green);
+            color: black;
+        }
+        .equip-item i {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        /* manifesto block */
+        .manifesto {
+            background: black;
+            color: white;
+            border-radius: 40px;
+            padding: 2.2rem;
+            margin: 2rem 0;
+        }
+        .manifesto p {
+            font-size: 1.4rem;
+            line-height: 1.4;
+            font-weight: 600;
+        }
+
+        /* studio footer contact */
+        .footer-contact {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #333;
+        }
+
+        /* ========== RESPONSIVE TWEAKS ========== */
+        @media screen and (max-width: 400px) {
+            /* reduce overall padding slightly */
+            section { padding: 2rem 1rem; }
+            h2 { font-size: 2.2rem; margin-bottom: 1.5rem; }
+            
+            /* story grid → stack on small */
+            .story-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .story-highlight {
+                padding: 1.2rem;
+            }
+
+            /* team grid still 2 cols, but smaller text */
+            .team-info { padding: 0.8rem; }
+            .team-name { font-size: 1rem; }
+            .team-role { font-size: 0.75rem; }
+
+            /* equipment grid reduce padding */
+            .equip-item { padding: 1.2rem 0.5rem; }
+            .equip-item i { font-size: 1.8rem; }
+
+            /* manifesto font size down */
+            .manifesto { padding: 1.5rem; }
+            .manifesto p { font-size: 1.2rem; }
+
+            /* hero heading adjust */
+            .studio-hero h1 { font-size: 2.8rem; }
+        }
+
+        @media screen and (max-width: 360px) {
+            /* even smaller: team grid to 1 column? but maybe keep 2 if still fits, but we'll adjust */
+            .team-grid {
+                grid-template-columns: 1fr; /* stack for readability */
+            }
+            .team-img { height: 180px; } /* give a bit more height */
+            .equip-grid {
+                grid-template-columns: 1fr; /* stack equipment */
+            }
+            .space-grid {
+                grid-template-columns: 1fr; /* stack space images */
+            }
+            .space-item.span-2 {
+                grid-column: span 1;
+                aspect-ratio: 1/1;
+            }
+            h2 { font-size: 2rem; }
+            .studio-hero h1 { font-size: 2.5rem; }
+        }
+
+        /* ensure no overflow */
+        img { max-width: 100%; height: auto; }
+        .app-container { overflow-x: hidden; }
+    </style>
+</head>
+<body>
+    <!-- WhatsApp Button (same) -->
+    <a href="https://wa.me/2349164712004?text=Hello%20OPSIS%2C%20I'd%20like%20a%20quote" 
+       target="_blank" 
+       class="whatsapp-float">
+        <i class="bi bi-whatsapp"></i>
+        <span>Quote</span>
+    </a>
+
+    <!-- Sidebar overlay + nav (same) -->
+    <div class="sidebar-overlay" id="overlay"></div>
+    <nav class="sidebar" id="sidebar">
+        <a href="#" style="color: var(--accent-green);">▪︎ The Studio</a>
+        <a href="Opsis-capable.html">Capabilities</a>
+        <a href="#">Lookbook</a>
+        <a href="Opsis-quote.html">Request Quote</a>
+        <a href="Opsis-contact.html">Contact</a>
+    </nav>
+
+    <div class="app-container">
+        <header>
+            <div class="logo">
+  <img src="OPSIS2.9.svg" alt="OPSIS Logo">
+</div>
+            <div class="hamburger" id="hamburger">
+                <span style="width:100%"></span>
+                <span style="width:70%; align-self:flex-end;"></span>
+            </div>
+        </header>
+
+        <!-- ========== THE STUDIO PAGE CONTENT ========== -->
+        <main>
+            <!-- Hero section -->
+            <section class="studio-hero">
+                <span class="hero-flag reveal-fade-up">✧ since 2018</span>
+                <h1 class="reveal-zoom delay-1" style="font-size: 3.2rem; line-height: 0.95; font-weight: 800; letter-spacing: -2px;">The <span style="color: var(--accent-blue);">Studio</span></h1>
+                <p class="reveal-slide-right delay-2" style="font-size: 1.2rem; margin: 1.2rem 0 0; max-width: 90%;">
+                    A Lagos-born collective of designers, printers & paper engineers. 
+                    We don't just operate machines — we orchestrate them.
+                </p>
+            </section>
+
+            <!-- Story + philosophy -->
+            <section style="padding-top: 0;">
+                <div class="story-grid">
+                    <div class="story-highlight reveal-fade-up">
+                        <i class="bi bi-eye"></i>
+                        <h3>Obsession</h3>
+                        <p>Every job, from business card to exhibition stand, is treated with the same fanaticism. We believe print should be felt.</p>
+                    </div>
+                    <div class="story-highlight reveal-fade-up delay-1">
+                        <i class="bi bi-aspect-ratio"></i>
+                        <h3>Precision</h3>
+                        <p>Our Heidelberg presses are calibrated to 0.01mm. Dot gain is monitored live, colour is measured spectrophotometrically.</p>
+                    </div>
+                </div>
+                <div class="reveal-slide-right delay-2" style="background: var(--accent-pink); padding: 2rem; border-radius: 40px; color: black; margin-top: 1rem;">
+                    <p style="font-size: 1.3rem; font-weight: 600;">“We speak in CMYK, but we dream in textures.” — Zainab, creative director</p>
+                </div>
+            </section>
+
+            <!-- Team section -->
+            <section>
+                <h2 class="reveal-fade-up">Humans behind <br>the ink</h2>
+                <div class="team-grid">
+                    <!-- member 1 -->
+                    <div class="team-card reveal-zoom delay-1">
+                        <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400" alt="Zainab" class="team-img">
+                        <div class="team-info">
+                            <div class="team-name">Zainab O.</div>
+                            <div class="team-role">Creative Director</div>
+                            <p style="font-size: 0.9rem;">15 yrs Heidelberg, obsessed with letterpress.</p>
+                        </div>
+                    </div>
+                    <!-- member 2 -->
+                    <div class="team-card reveal-zoom delay-2">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400" alt="Tunde" class="team-img">
+                        <div class="team-info">
+                            <div class="team-name">Tunde K.</div>
+                            <div class="team-role">Print Master</div>
+                            <p style="font-size: 0.9rem;">Colour matching & foil wizard.</p>
+                        </div>
+                    </div>
+                    <!-- member 3 -->
+                    <div class="team-card reveal-zoom delay-3">
+                        <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400" alt="Folake" class="team-img">
+                        <div class="team-info">
+                            <div class="team-name">Folake A.</div>
+                            <div class="team-role">Production Lead</div>
+                            <p style="font-size: 0.9rem;">Logistics & large-format.</p>
+                        </div>
+                    </div>
+                    <!-- member 4 -->
+                    <div class="team-card reveal-zoom delay-1">
+                        <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400" alt="Chuka" class="team-img">
+                        <div class="team-info">
+                            <div class="team-name">Chuka O.</div>
+                            <div class="team-role">Design Lead</div>
+                            <p style="font-size: 0.9rem;">Typographer & sustainable materials.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Studio space gallery -->
+            <section>
+                <h2 class="reveal-slide-right">Inside the <span style="color: var(--accent-blue);">studio</span></h2>
+                <div class="space-grid">
+                    <div class="space-item reveal-zoom delay-1">
+                        <img src="https://images.unsplash.com/photo-1562408595-7f6b1c4a3e2f?w=400" alt="Heidelberg press">
+                    </div>
+                    <div class="space-item reveal-zoom delay-2">
+                        <img src="https://images.unsplash.com/photo-1581595220892-b4d4be1a5c31?w=400" alt="Paper storage">
+                    </div>
+                    <div class="space-item span-2 reveal-fade-up delay-3">
+                        <img src="https://images.unsplash.com/photo-1542744173-05336fcc7ad4?w=600" alt="Studio workspace">
+                    </div>
+                </div>
+                <p class="reveal-slide-right" style="margin-top: 1.5rem; background: white; padding: 1.2rem; border-radius: 60px; text-align: center;">📍 12 Bourdillon, Ikoyi — always open for studio visits</p>
+            </section>
+
+            <!-- Equipment grid -->
+            <section style="background: #ecebe3; border-radius: 60px; margin: 1rem 1.5rem;">
+                <h2 class="reveal-fade-up" style="padding-top: 2rem;">Tools of the trade</h2>
+                <div class="equip-grid">
+                    <div class="equip-item reveal-zoom delay-1"><i class="bi bi-printer"></i> Heidelberg CD 102</div>
+                    <div class="equip-item reveal-zoom delay-2"><i class="bi bi-brush"></i> Foil stamping</div>
+                    <div class="equip-item reveal-zoom delay-3"><i class="bi bi-scissors"></i> Die-cutting</div>
+                    <div class="equip-item reveal-zoom delay-1"><i class="bi bi-palette"></i> Pantone matching</div>
+                    <div class="equip-item reveal-zoom delay-2"><i class="bi bi-upc-scan"></i> Spectrophotometer</div>
+                    <div class="equip-item reveal-zoom delay-3"><i class="bi bi-truck"></i> Same‑day delivery</div>
+                </div>
+            </section>
+
+            <!-- Manifesto -->
+            <section>
+                <div class="manifesto reveal-slide-right">
+                    <p style="font-size: 1rem; color: #aaa; margin-bottom: 1rem;">/ manifesto</p>
+                    <p>We believe print is not dead — it's just waiting for someone to care enough. We care about register, about the way light falls on uncoated stock, about the snap of a magnetic box. That’s the OPSIS standard.</p>
+                    <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <span style="background: var(--accent-green); color: black; padding: 0.5rem 1rem; border-radius: 40px;">ISO 12647</span>
+                        <span style="background: var(--accent-green); color: black; padding: 0.5rem 1rem; border-radius: 40px;">FSC® certified</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA -->
+            <section style="text-align: center; padding-top: 0;">
+                <h2 class="reveal-fade-up" style="font-size: 2rem;">Want to see the <br>studio in motion?</h2>
+                <a href="#" class="btn reveal-zoom delay-2 btn-bounce" style="background: var(--accent-blue); color: white;">Book a tour →</a>
+            </section>
+        </main>
+
+        <!-- FOOTER -->
+        <footer>
+            <h2 class="reveal-fade-up">Craft <br>endures.</h2>
+            <div class="footer-contact">
+                <p><i class="bi bi-geo-alt-fill" style="color: var(--accent-green);"></i> 12 Bourdillon Road, Ikoyi, Lagos</p>
+                <p><i class="bi bi-telephone-fill" style="color: var(--accent-green);"></i> +234 916 471 2004</p>
+                <p><i class="bi bi-envelope-fill" style="color: var(--accent-green);"></i> hello@opsis.ng</p>
+            </div>
+            <div style="display: flex; gap: 15px; margin-top: 2rem;">
+                <a href="#" style="width: 45px; height: 45px; background: #222; border-radius: 45px; display: flex; align-items: center; justify-content: center; color: white;"><i class="bi bi-linkedin"></i></a>
+                <a href="#" style="width: 45px; height: 45px; background: #222; border-radius: 45px; display: flex; align-items: center; justify-content: center; color: white;"><i class="bi bi-instagram"></i></a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- SCRIPTS (intersection observer + hamburger) -->
+    <script>
+        (function() {
+            const ham = document.getElementById('hamburger');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            const spans = ham.querySelectorAll('span');
+
+            function toggleSidebar(e) {
+                e?.stopPropagation();
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+
+                if (sidebar.classList.contains('active')) {
+                    spans[0].style.transform = 'translateY(10px) rotate(45deg)';
+                    spans[1].style.transform = 'translateY(-8px) rotate(-45deg)';
+                    spans[1].style.width = '100%';
+                } else {
+                    spans[0].style.transform = 'none';
+                    spans[1].style.transform = 'none';
+                    spans[1].style.width = '70%';
+                }
+            }
+
+            ham.addEventListener('click', toggleSidebar);
+            overlay.addEventListener('click', toggleSidebar);
+
+            // Intersection Observer for reveals
+            const observerOptions = { threshold: 0.15, rootMargin: '0px 0px -30px 0px' };
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, observerOptions);
+
+            const revealElements = document.querySelectorAll(
+                '.reveal-fade-up, .reveal-slide-right, .reveal-zoom'
+            );
+            revealElements.forEach(el => observer.observe(el));
+
+            // fallback for already visible
+            const fastObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if(entry.isIntersecting) entry.target.classList.add('active');
+                });
+            }, { threshold: 0.1 });
+            revealElements.forEach(el => fastObserver.observe(el));
+        })();
+    </script>
+</body>
+</html>

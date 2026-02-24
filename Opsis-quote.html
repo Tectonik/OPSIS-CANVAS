@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPSIS · request a quote · dynamic pricing</title>
+    <!-- Bootstrap Icons (same as main brand) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Font Inter (brand font) -->
+    
+    <style>
+        /* ----- core brand tokens + 2026 calm twist ----- */
+        :root {
+            --bg: #f7f6f0;
+            --bg-alt: #ffffff;
+            --text: #111;
+            --text-soft: #2e2e2e;
+            --accent-green: #a3e635;
+            --accent-blue: #3b82f6;
+            --accent-pink: #f472b6;
+            --accent-red: #FF385C;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);     /* signature bounce */
+            --ease-soft: cubic-bezier(0.25, 1, 0.5, 1);
+            --radius-card: 28px;
+            --radius-form: 32px;
+            --shadow-subtle: 0 20px 35px -10px rgba(0,0,0,0.05);
+            --shadow-hover: 0 30px 40px -15px rgba(0,0,0,0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font);
+            background: #e2e0d6;  /* same outer tone */
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 1000px;   /* slightly wider for form + visual space */
+            width: 100%;
+            background-color: var(--bg);
+            min-height: 100vh;
+            box-shadow: 0 0 40px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        /* ----- reveal animations (softer but still bouncy) ----- */
+        .reveal-up {
+            opacity: 0;
+            transform: translateY(35px) scale(0.98);
+            transition: transform 0.8s var(--ease-bounce), opacity 0.7s var(--ease-soft);
+        }
+        .reveal-up.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .reveal-right {
+            opacity: 0;
+            transform: translateX(-25px) skewX(-1deg);
+            transition: transform 0.8s var(--ease-bounce), opacity 0.7s var(--ease-soft);
+        }
+        .reveal-right.active {
+            opacity: 1;
+            transform: translateX(0) skewX(0);
+        }
+
+        .reveal-scale {
+            opacity: 0;
+            transform: scale(0.8) rotate(-0.5deg);
+            transition: transform 0.9s var(--ease-bounce), opacity 0.8s ease;
+        }
+        .reveal-scale.active {
+            opacity: 1;
+            transform: scale(1) rotate(0);
+        }
+
+        .delay-1 { transition-delay: 0.05s; }
+        .delay-2 { transition-delay: 0.12s; }
+        .delay-3 { transition-delay: 0.2s; }
+        .delay-4 { transition-delay: 0.3s; }
+
+        /* ----- sidebar (exact same as landing, but we keep for nav) ----- */
+        .sidebar {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            width: 100%;
+            height: auto;
+            max-height: 80vh;
+            background: #111;
+            z-index: 1000;
+            transition: bottom 0.6s var(--ease-bounce);
+            padding: 3rem 2rem;
+            color: white;
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.3);
+        }
+        .sidebar.active { bottom: 0; }
+        .sidebar-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .sidebar-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .sidebar a {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin: 0.5rem 0;
+            transform: scale(0.8);
+            opacity: 0;
+            transition: transform 0.5s var(--ease-bounce), opacity 0.4s;
+            transform-origin: left;
+        }
+        .sidebar.active a {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .sidebar.active a:nth-child(1) { transition-delay: 0.1s; }
+        .sidebar.active a:nth-child(2) { transition-delay: 0.2s; }
+        .sidebar.active a:nth-child(3) { transition-delay: 0.3s; }
+        .sidebar.active a:nth-child(4) { transition-delay: 0.4s; }
+        .sidebar.active a:nth-child(5) { transition-delay: 0.5s; }
+        .sidebar a:hover {
+            transform: scale(1.1) translateX(10px);
+            color: var(--accent-green);
+        }
+
+        /* header – exactly like main to keep global identity */
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.5rem; background: var(--bg); position: sticky; top: 0; z-index: 900;
+        }
+        .logo { font-size: 1.3rem; font-weight: 900; letter-spacing: 3px; }
+        .hamburger {
+            cursor: pointer; display: flex; flex-direction: column; gap: 8px; width: 30px;
+            transition: transform 0.3s var(--ease-bounce);
+        }
+        .hamburger:active { transform: scale(0.7) rotate(5deg); }
+        .hamburger span { display: block; height: 2px; background: var(--text); transition: 0.3s; }
+
+        /* ----- PAGE SPECIFIC: REQUEST QUOTE (2026 INSPIRED) ----- */
+        /* calm, transparent, dynamic — not rigid pricing */
+        .quote-hero {
+            padding: 2rem 1.5rem 1rem;
+            max-width: 700px;
+        }
+        .quote-hero h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: -1.5px;
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+        .quote-hero .dynamic-badge {
+            background: var(--accent-green);
+            color: black;
+            padding: 0.3rem 1rem;
+            border-radius: 60px;
+            display: inline-block;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+        .quote-hero p {
+            font-size: 1.2rem;
+            color: #333;
+            max-width: 550px;
+        }
+
+        /* trust micro indicators */
+        .trust-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem 2rem;
+            padding: 1.5rem;
+            border-top: 1px dashed #ccc;
+            border-bottom: 1px dashed #ccc;
+            background: #fafaf5;
+        }
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+        .trust-item i { font-size: 1.6rem; color: var(--accent-blue); }
+
+        /* ----- 2026 FORM: progressive disclosure, human, calm ----- */
+        .form-section {
+            padding: 2.5rem 1.5rem;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: var(--radius-form);
+            padding: 2rem 1.8rem;
+            box-shadow: var(--shadow-subtle);
+            border: 1px solid rgba(0,0,0,0.02);
+            transition: box-shadow 0.4s;
+        }
+        .form-card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .step-indicator {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+        }
+        .step-pill {
+            background: #f0f0ea;
+            padding: 0.5rem 1.2rem;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #555;
+            transition: all 0.3s var(--ease-bounce);
+        }
+        .step-pill.active {
+            background: var(--accent-green);
+            color: black;
+            transform: scale(1.05);
+        }
+
+        .form-row {
+            margin-bottom: 2rem;
+        }
+        label {
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: block;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.2px;
+        }
+        .field-hint {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 16px 18px;
+            border: 1.5px solid #ddd;
+            border-radius: 24px;
+            font-family: var(--font);
+            font-size: 1rem;
+            background: white;
+            transition: border 0.2s, box-shadow 0.2s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 4px rgba(59,130,246,0.15);
+        }
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* file upload area (modern) */
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 30px;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            background: #fbfbf8;
+            transition: background 0.3s, border-color 0.3s;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            background: #f5f5ed;
+            border-color: var(--accent-blue);
+        }
+        .upload-area i {
+            font-size: 2.5rem;
+            color: var(--accent-blue);
+            margin-bottom: 0.5rem;
+        }
+        .upload-note {
+            font-size: 0.8rem;
+            color: #777;
+            margin-top: 0.5rem;
+        }
+
+        /* dynamic pricing explainer */
+        .pricing-dynamic {
+            background: #f0f7ff;
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin: 2rem 0 1.5rem;
+            border-left: 8px solid var(--accent-blue);
+        }
+        .pricing-dynamic h4 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 800;
+            margin-bottom: 0.8rem;
+        }
+
+        /* quote action */
+        .quote-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 2.5rem;
+        }
+        .btn-primary {
+            background: black;
+            color: white;
+            padding: 18px 40px;
+            border-radius: 60px;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.3s var(--ease-bounce), background 0.2s;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-primary:hover {
+            background: #2d2d2d;
+            transform: scale(1.03);
+        }
+        .btn-primary:active {
+            transform: scale(0.95);
+        }
+        .btn-secondary {
+            background: transparent;
+            border: 1.5px solid black;
+            padding: 18px 30px;
+            border-radius: 60px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-secondary:hover {
+            background: #f0f0ea;
+        }
+
+        /* capabilities quick selector (bento style, but minimal) */
+        .capability-badge-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 1.8rem 0;
+        }
+        .cap-badge {
+            background: #f0f0ea;
+            padding: 12px 25px;
+            border-radius: 60px;
+            font-weight: 600;
+            transition: all 0.3s var(--ease-bounce);
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        .cap-badge:hover {
+            background: var(--accent-green);
+            transform: scale(1.05) translateY(-3px);
+        }
+        .cap-badge.selected {
+            background: black;
+            color: white;
+            border-color: black;
+        }
+
+        /* FAQ minimal (quote related) */
+        .faq-mini {
+            margin: 3rem 1.5rem;
+        }
+        .faq-mini h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+        }
+        .faq-q {
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            padding: 1.2rem 0;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+        }
+        .faq-q span:last-child {
+            font-size: 1.5rem;
+            transition: transform 0.3s;
+        }
+        .faq-q.open span:last-child {
+            transform: rotate(45deg);
+        }
+        .faq-a {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: 0.4s;
+            color: #444;
+        }
+        .faq-a.open {
+            max-height: 120px;
+            opacity: 1;
+            padding: 0.5rem 0 1.5rem;
+        }
+
+        footer {
+            background: black;
+            color: white;
+            padding: 4rem 1.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .two-col { grid-template-columns: 1fr; }
+            .quote-hero h1 { font-size: 2.5rem; }
+        }
+
+        /* simulate hidden masonry filter (just for consistency, not used heavily) */
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar + overlay (identical to global, to keep fourth page consistent) -->
+    <div class="sidebar-overlay" id="overlay"></div>
+    <nav class="sidebar" id="sidebar">
+        <a href="Opsis-studio.html">The Studio</a>
+        <a href="Opsis-capable.html">Capabilities</a>
+        <a href="#">Lookbook</a>
+        <a href="#" style="color: var(--accent-green);">▪︎ Request Quote</a>   <!-- active state -->
+        <a href="Opsis-contact.html">Contact</a>
+    </nav>
+
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <img src="OPSIS2.9.svg" alt="OPSIS Logo"> 
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span style="width:100%"></span>
+                <span style="width:70%; align-self:flex-end;"></span>
+            </div>
+        </header>
+
+        <!-- HERO (quote specific) – dynamic, calm, confident -->
+        <section class="quote-hero reveal-up active">
+            <span class="dynamic-badge"><i class="bi bi-lightning-charge-fill"></i> dynamic pricing · no rigid quotes</span>
+            <h1>Let’s estimate<br>your <span style="color: var(--accent-blue);">print.</span></h1>
+            <p>Tell us what you need — we’ll reply within one business day with a transparent, itemised quote. Pricing adapts to stock, finishes & quantity.</p>
+        </section>
+
+        <!-- trust strip: 2026 microbrand signals [citation:1][citation:5] -->
+        <div class="trust-strip reveal-right delay-1 active">
+            <div class="trust-item"><i class="bi bi-clock-history"></i> <span>response < 24h</span></div>
+            <div class="trust-item"><i class="bi bi-file-earmark-check"></i> <span>NDA on request</span></div>
+            <div class="trust-item"><i class="bi bi-palette"></i> <span>free material samples</span></div>
+            <div class="trust-item"><i class="bi bi-gem"></i> <span>Heidelberg precision</span></div>
+        </div>
+
+        <!-- MAIN QUOTE FORM (multi-step / progressive disclosure) [citation:9][citation:3] -->
+        <section class="form-section">
+            <div class="form-card">
+                <!-- step indicator (soft guide) -->
+                <div class="step-indicator">
+                    <span class="step-pill active">1 · basics</span>
+                    <span class="step-pill">2 · specs</span>
+                    <span class="step-pill">3 · finishing</span>
+                    <span class="step-pill">4 · review</span>
+                </div>
+
+                <!-- step 1: product category (interactive badges) -->
+                <div class="form-row">
+                    <label>I’m interested in <i class="bi bi-question-circle" style="color: #999;"></i></label>
+                    <div class="field-hint"><i class="bi bi-info-circle"></i> choose all that apply</div>
+                    <div class="capability-badge-group" id="categoryBadges">
+                        <span class="cap-badge" data-cat="packaging">Luxury packaging</span>
+                        <span class="cap-badge" data-cat="cards">Business cards</span>
+                        <span class="cap-badge" data-cat="invitations">Invitations</span>
+                        <span class="cap-badge" data-cat="brochures">Brochures</span>
+                        <span class="cap-badge" data-cat="large">Large format</span>
+                        <span class="cap-badge" data-cat="corporate">Corporate identity</span>
+                    </div>
+                    <!-- hidden input would store selected -->
+                </div>
+
+                <!-- two-col for quantity & timeline (essential) [citation:2] -->
+                <div class="two-col">
+                    <div class="form-row">
+                        <label>Estimated quantity <span style="font-weight:400;">(units)</span></label>
+                        <input type="number" placeholder="e.g. 500" min="1" value="250">
+                    </div>
+                    <div class="form-row">
+                        <label>Target deadline</label>
+                        <input type="date" value="2026-04-15">
+                    </div>
+                </div>
+
+                <!-- dynamic pricing explainer (visible, calm) [citation:3][citation:7] -->
+                <div class="pricing-dynamic reveal-scale">
+                    <h4><i class="bi bi-arrow-repeat"></i> Why pricing flexes</h4>
+                    <p>Paper markets move — we update quotes based on current mill prices, stock availability, and complexity. You’ll always see line items: pre-press, materials, print, finishing. No rigid tiers.</p>
+                </div>
+
+                <!-- specifications (like paper, size, etc) – key for print RFQ [citation:10] -->
+                <div class="form-row">
+                    <label>Paper / substrate preference (optional)</label>
+                    <select>
+                        <option>Let OPSIS recommend</option>
+                        <option>Uncoated text (80#)</option>
+                        <option>Coated cover (100# gloss)</option>
+                        <option>Recycled / FSC</option>
+                        <option>Soft-touch / linen</option>
+                        <option>Specialty (ask in notes)</option>
+                    </select>
+                    <div class="field-hint"><i class="bi bi-rulers"></i> flat/finished size later</div>
+                </div>
+
+                <!-- color / finishing hints -->
+                <div class="two-col">
+                    <div class="form-row">
+                        <label>Colors</label>
+                        <select>
+                            <option>4/4 (CMYK both sides)</option>
+                            <option>4/0 (CMYK front only)</option>
+                            <option>2/2 spot colors</option>
+                            <option>1/0 black only</option>
+                            <option>Pantone match</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label>Finishing (rough)</label>
+                        <select>
+                            <option>None / simple cut</option>
+                            <option>Foil stamping</option>
+                            <option>Emboss / deboss</option>
+                            <option>Lamination (matt/gloss)</option>
+                            <option>Die-cut / custom shape</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- file upload area – modern drag & drop feel [citation:9] -->
+                <div class="form-row">
+                    <label>Upload brief / artwork (PDF, AI, STEP, DWG)</label>
+                    <div class="upload-area" id="uploadTrigger">
+                        <i class="bi bi-cloud-upload"></i>
+                        <div><strong>click or drag files</strong></div>
+                        <div class="upload-note">max 100 MB · we accept STEP, IGES, PDF, AI, PSD</div>
+                    </div>
+                    <input type="file" id="fileInput" multiple style="display: none;">
+                </div>
+
+                <!-- context note – one free text beats eight dropdowns [citation:9][citation:1] -->
+                <div class="form-row">
+                    <label>Anything we should know? <span style="font-weight:400;">(context, special requests)</span></label>
+                    <textarea rows="3" placeholder="e.g. grain direction, foil colour, delivery instructions ..."></textarea>
+                </div>
+
+                <!-- contact details (minimal, trust) -->
+                <div class="two-col">
+                    <div class="form-row"><input type="text" placeholder="Your name *"></div>
+                    <div class="form-row"><input type="email" placeholder="Email *"></div>
+                </div>
+                <div class="two-col">
+                    <div class="form-row"><input type="tel" placeholder="Phone (for quick clarifications)"></div>
+                    <div class="form-row"><input type="text" placeholder="Company / brand (if any)"></div>
+                </div>
+
+                <!-- actions -->
+                <div class="quote-actions">
+                    <button class="btn-primary">Request quote <i class="bi bi-send"></i></button>
+                    <button class="btn-secondary">Save draft & continue later</button>
+                </div>
+                <p style="margin-top: 1rem; font-size:0.85rem; color:#777;"><i class="bi bi-shield-check"></i> We’ll respond within one business day. No rigid prices — only fair, transparent estimates.</p>
+            </div>
+        </section>
+
+        <!-- quick FAQ (quote-related, collapsible) -->
+        <section class="faq-mini">
+            <h3 class="reveal-right">quick · quote · faq</h3>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)">
+                    <span>How accurate is your quote?</span>
+                    <span>+</span>
+                </div>
+                <div class="faq-a">Within 5% of final invoice, unless specs change. Paper & finishing costs are updated weekly.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)">
+                    <span>What if I need a last‑minute change?</span>
+                    <span>+</span>
+                </div>
+                <div class="faq-a">We accommodate modifications before plate‑making. Rush surcharges may apply, but we’ll show them separately.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFaq(this)">
+                    <span>Do you offer samples before bulk?</span>
+                    <span>+</span>
+                </div>
+                <div class="faq-a">Yes, digital or press proof (at cost, deductible from order). Ask in your notes.</div>
+            </div>
+        </section>
+
+        <!-- small gallery / trust (2026 quiet authenticity) [citation:4] -->
+        <section style="padding: 0 1.5rem 3rem;">
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center; justify-content: space-between; border-top: 1px solid #ccc; padding-top: 2rem;">
+                <div style="display: flex; gap: 12px;">
+                    <i class="bi bi bi-award" style="font-size: 2rem; color: var(--accent-pink);"></i>
+                    <div><strong>ISO 12647-2</strong> · certified colour</div>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <i class="bi bi bi-truck" style="font-size: 2rem; color: var(--accent-green);"></i>
+                    <div>Same‑day Lagos delivery available</div>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <i class="bi bi bi-emoji-smile" style="font-size: 2rem; color: var(--accent-blue);"></i>
+                    <div>200+ global brands trust us</div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <h2 class="reveal-up">craft your<br>print.</h2>
+            <p style="margin: 1rem 0;">12 Bourdillon Road, Ikoyi · +234 916 471 2004</p>
+            <div style="display: flex; gap: 20px;">
+                <a href="#" style="color:white;"><i class="bi bi-instagram"></i></a>
+                <a href="#" style="color:white;"><i class="bi bi-linkedin"></i></a>
+                <a href="#" style="color:white;"><i class="bi bi-envelope-fill"></i></a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- scripts -->
+    <script>
+        // ----- global hamburger (identical to landing) -----
+        const ham = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const spans = ham?.querySelectorAll('span') || [];
+
+        function toggleSidebar(e) {
+            e?.stopPropagation();
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+
+            if (sidebar.classList.contains('active')) {
+                if(spans[0]) spans[0].style.transform = 'translateY(10px) rotate(45deg)';
+                if(spans[1]) { spans[1].style.transform = 'translateY(-8px) rotate(-45deg)'; spans[1].style.width = '100%'; }
+            } else {
+                if(spans[0]) spans[0].style.transform = 'none';
+                if(spans[1]) { spans[1].style.transform = 'none'; spans[1].style.width = '70%'; }
+            }
+        }
+        ham?.addEventListener('click', toggleSidebar);
+        overlay?.addEventListener('click', toggleSidebar);
+
+        // ----- intersection observer for reveals (subtle, like landing) -----
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) entry.target.classList.add('active');
+            });
+        }, { threshold: 0.15, rootMargin: '0px 0px -30px 0px' });
+
+        document.querySelectorAll('.reveal-up, .reveal-right, .reveal-scale, .faq-item').forEach(el => observer.observe(el));
+
+        // ----- FAQ toggle (minimal) -----
+        window.toggleFaq = function(el) {
+            const parent = el.closest('.faq-item');
+            const answer = parent.querySelector('.faq-a');
+            const icon = el.querySelector('span:last-child');
+            el.classList.toggle('open');
+            answer.classList.toggle('open');
+            icon.innerText = el.classList.contains('open') ? '−' : '+';
+        };
+
+        // ----- capability badge toggle (just visual) -----
+        document.querySelectorAll('.cap-badge').forEach(badge => {
+            badge.addEventListener('click', () => {
+                badge.classList.toggle('selected');
+            });
+        });
+
+        // ----- file upload simulation (just for demo) -----
+        const uploadArea = document.getElementById('uploadTrigger');
+        const fileInput = document.getElementById('fileInput');
+        uploadArea?.addEventListener('click', () => fileInput?.click());
+        fileInput?.addEventListener('change', function(e) {
+            if(this.files.length > 0) {
+                uploadArea.innerHTML = `<i class="bi bi-file-earmark-check"></i> ${this.files.length} file(s) selected`;
+            }
+        });
+
+        // ----- ensure active class on step pills (no real function, just UI) -----
+        // (static for demo)
+
+        // additional reveal for elements that might already be visible
+        window.addEventListener('load', () => {
+            document.querySelectorAll('.reveal-up, .reveal-right, .reveal-scale').forEach(el => {
+                if(el.getBoundingClientRect().top < window.innerHeight - 100) el.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPSIS | capabilities · precision craft</title>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* ----- ELASTIC / BOUNCY FOUNDATION (same as landing) ----- */
+        :root {
+            --bg: #f7f6f0;
+            --text: #111;
+            --accent-green: #a3e635;
+            --accent-blue: #3b82f6;
+            --accent-pink: #f472b6;
+            --accent-red: #FF385C;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --ease-out-soft: cubic-bezier(0.25, 1, 0.5, 1);
+            --ease-elastic-heavy: cubic-bezier(0.68, -0.6, 0.32, 1.6);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font);
+            background-color: #e2e0d6;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 480px;
+            width: 100%;
+            background-color: var(--bg);
+            min-height: 100vh;
+            box-shadow: 0 0 30px rgba(0,0,0,0.08);
+            position: relative;
+        }
+
+        /* reveal animations (same) */
+        .reveal-fade-up {
+            opacity: 0;
+            transform: translateY(40px) scale(0.98);
+            transition: transform 0.9s var(--ease-bounce), opacity 0.7s var(--ease-out-soft);
+        }
+        .reveal-fade-up.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .reveal-slide-right {
+            opacity: 0;
+            transform: translateX(-30px) skewX(-2deg);
+            transition: transform 0.9s var(--ease-bounce), opacity 0.8s var(--ease-out-soft);
+        }
+        .reveal-slide-right.active {
+            opacity: 1;
+            transform: translateX(0) skewX(0);
+        }
+        .reveal-zoom {
+            opacity: 0;
+            transform: scale(0.7) rotate(-1deg);
+            transition: transform 0.9s var(--ease-elastic-heavy), opacity 0.8s ease;
+        }
+        .reveal-zoom.active {
+            opacity: 1;
+            transform: scale(1) rotate(0);
+        }
+        .delay-1 { transition-delay: 0.05s; }
+        .delay-2 { transition-delay: 0.15s; }
+        .delay-3 { transition-delay: 0.25s; }
+        .delay-4 { transition-delay: 0.4s; }
+
+        /* sidebar same */
+        .sidebar {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            width: 100%;
+            height: auto;
+            max-height: 80vh;
+            background: #111;
+            z-index: 1000;
+            transition: bottom 0.6s var(--ease-bounce);
+            padding: 3rem 2rem;
+            color: white;
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.3);
+        }
+        .sidebar.active { bottom: 0; }
+        .sidebar-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .sidebar-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .sidebar a {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin: 0.5rem 0;
+            transform: scale(0.8);
+            opacity: 0;
+            transition: transform 0.5s var(--ease-bounce), opacity 0.4s;
+            transform-origin: left;
+        }
+        .sidebar.active a {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .sidebar.active a:nth-child(1) { transition-delay: 0.1s; }
+        .sidebar.active a:nth-child(2) { transition-delay: 0.2s; }
+        .sidebar.active a:nth-child(3) { transition-delay: 0.3s; }
+        .sidebar.active a:nth-child(4) { transition-delay: 0.4s; }
+        .sidebar.active a:nth-child(5) { transition-delay: 0.5s; }
+        .sidebar a:hover {
+            transform: scale(1.1) translateX(10px);
+            color: var(--accent-green);
+        }
+
+        /* header */
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.5rem; background: var(--bg); position: sticky; top: 0; z-index: 900;
+        }
+        .logo { font-size: 1.3rem; font-weight: 900; letter-spacing: 3px; }
+        .hamburger {
+            cursor: pointer; display: flex; flex-direction: column; gap: 8px; width: 30px;
+            transition: transform 0.3s var(--ease-bounce);
+        }
+        .hamburger:active { transform: scale(0.7) rotate(5deg); }
+        .hamburger span { display: block; height: 2px; background: var(--text); transition: 0.3s; }
+
+        /* whatsapp same */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            right: 20px;
+            background: #25D366;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            text-decoration: none;
+            box-shadow: 0 10px 25px rgba(37, 211, 102, 0.4);
+            z-index: 999;
+            transition: all 0.3s var(--ease-bounce);
+            overflow: hidden;
+        }
+        .whatsapp-float:hover {
+            width: 140px;
+            background: #20b859;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(37, 211, 102, 0.5);
+        }
+        .whatsapp-float i { font-size: 23px; line-height: 1; margin: 5px; }
+        .whatsapp-float span { display: none; font-weight: 600; font-size: 1rem; white-space: nowrap; }
+        .whatsapp-float:hover span { display: inline; }
+        .whatsapp-float:active { transform: scale(0.9) translateY(-5px); }
+
+        /* footer */
+        footer { background: #000; color: white; padding: 4rem 1.5rem; }
+        footer h2 { font-size: 3rem; line-height: 1; color: white; }
+
+        /* ----- NEW CAPABILITIES PAGE STYLES (fresh layout, same spirit) ----- */
+        .capabilities-hero {
+            text-align: left;
+            padding: 2rem 1.5rem 1rem;
+        }
+        .capabilities-hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: -2px;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+        .hero-desc {
+            font-size: 1.2rem;
+            color: #333;
+            max-width: 90%;
+            border-left: 4px solid var(--accent-green);
+            padding-left: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        /* discipline cards – different layout: stacked with icon + expand */
+        .discipline-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 2rem 1.5rem;
+        }
+        .discipline-card {
+            background: white;
+            border-radius: 28px;
+            padding: 1.8rem;
+            border: 1px solid #eee;
+            transition: transform 0.4s var(--ease-bounce), box-shadow 0.3s;
+            cursor: default;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .discipline-card:hover {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 20px 25px -10px rgba(0,0,0,0.15);
+        }
+        .disc-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .disc-icon {
+            font-size: 2.2rem;
+            background: var(--accent-green);
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+        }
+        .disc-title h3 { font-size: 1.6rem; font-weight: 800; }
+        .disc-title p { color: #555; font-weight: 400; }
+        .disc-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem 1.5rem;
+            margin-top: 0.5rem;
+            border-top: 1px dashed #ccc;
+            padding-top: 1.2rem;
+        }
+        .disc-details span {
+            background: #f0f0ea;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: transform 0.2s var(--ease-bounce);
+        }
+        .disc-details span:hover { transform: scale(1.1); background: var(--accent-blue); color: white; }
+
+        /* equipment & tech – bento style */
+        .tech-bento {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 3rem 1.5rem;
+        }
+        .bento-item {
+            background: #1a1a1a;
+            color: white;
+            border-radius: 28px;
+            padding: 1.8rem 1.2rem;
+            transition: transform 0.4s var(--ease-bounce);
+        }
+        .bento-item:hover { transform: scale(0.97) rotate(-0.5deg); }
+        .bento-item i { font-size: 2rem; color: var(--accent-green); margin-bottom: 0.8rem; }
+        .bento-item h4 { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.2rem; }
+        .bento-item p { font-size: 0.8rem; opacity: 0.8; }
+
+        /* material library – horizontal scroll with cards */
+        .material-scroll {
+            overflow-x: auto;
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 1.5rem 2rem;
+            scroll-snap-type: x mandatory;
+            cursor: grab;
+        }
+        .material-scroll:active { cursor: grabbing; }
+        .material-card {
+            flex: 0 0 160px;
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem 1rem;
+            scroll-snap-align: start;
+            border: 1px solid #ddd;
+            transition: transform 0.3s var(--ease-bounce);
+            text-align: center;
+        }
+        .material-card:hover { transform: scale(1.05) translateY(-5px); background: var(--accent-pink); color: white; }
+        .material-card .swatch {
+            width: 50px;
+            height: 50px;
+            border-radius: 50px;
+            margin: 0 auto 1rem;
+            background: #ccc;
+        }
+        .material-card .swatch.soft-touch { background: #c0b7a6; }
+        .material-card .swatch.uncoated { background: #ede7d9; }
+        .material-card .swatch.metallic { background: linear-gradient(145deg, #d4af37, #b8860b); }
+        .material-card .swatch.recycled { background: #a8b59b; }
+        .material-card h5 { font-weight: 800; font-size: 1.1rem; }
+        .material-card p { font-size: 0.75rem; opacity: 0.7; }
+
+        /* industries served – pill grid */
+        .industry-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin: 2rem 1.5rem;
+        }
+        .industry-pill {
+            background: white;
+            padding: 0.8rem 2rem;
+            border-radius: 60px;
+            font-weight: 600;
+            border: 1px solid #ccc;
+            transition: transform 0.3s var(--ease-bounce), background 0.2s;
+        }
+        .industry-pill:hover {
+            transform: scale(1.08);
+            background: var(--text);
+            color: white;
+            border-color: var(--text);
+        }
+
+        /* CTA section */
+        .cap-cta {
+            background: #111;
+            color: white;
+            border-radius: 40px;
+            margin: 2rem 1.5rem;
+            padding: 2.5rem 2rem;
+            text-align: center;
+        }
+        .cap-cta h2 { font-size: 2.2rem; color: white; margin-bottom: 0.5rem; }
+        .btn {
+            display: inline-block; background: var(--accent-green); color: black; padding: 18px 32px;
+            border-radius: 60px; font-weight: 700; text-decoration: none; margin-top: 1.2rem;
+            transition: transform 0.3s var(--ease-bounce), background 0.2s;
+            border: none; cursor: pointer;
+        }
+        .btn:hover { transform: scale(1.05); background: #c7f270; }
+        .btn:active { transform: scale(0.9); }
+
+        /* section titles */
+        .section-title {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin: 2rem 1.5rem 1rem;
+        }
+        .section-title i { color: var(--accent-blue); }
+
+        /* hide elements */
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <!-- WhatsApp Button (same) -->
+    <a href="https://wa.me/2349164712004?text=Hello%20OPSIS%2C%20I'd%20like%20a%20quote" target="_blank" class="whatsapp-float">
+        <i class="bi bi-whatsapp"></i>
+        <span>Quote</span>
+    </a>
+
+    <!-- Sidebar overlay + nav (link to capabilities updated) -->
+    <div class="sidebar-overlay" id="overlay"></div>
+    <nav class="sidebar" id="sidebar">
+        <a href="Opsis-studio.html">The Studio</a>
+        <a href="#" style="color: var(--accent-green);">▪︎ Capabilities</a>   <!-- points to this page -->
+        <a href="#">Lookbook</a>
+        <a href="Opsis-quote.html">Request Quote</a>
+        <a href="#">Contact</a>
+    </nav>
+
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <img src="OPSIS2.9.svg" alt="OPSIS Logo"> <!-- placeholder -->
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span style="width:100%"></span>
+                <span style="width:70%; align-self:flex-end;"></span>
+            </div>
+        </header>
+
+        <!-- CAPABILITIES HERO (fresh style) -->
+        <section class="capabilities-hero">
+            <h1 class="reveal-fade-up active">precision<br><span style="color: var(--accent-blue);">across every<br>substrate</span></h1>
+            <p class="hero-desc reveal-slide-right delay-1">Heidelberg mastery • soft‑touch • foil • sustainable materials — all under one roof.</p>
+        </section>
+
+        <!-- CORE DISCIPLINES (stacked cards) -->
+        <h2 class="section-title reveal-fade-up"><i class="bi bi-grid"></i> core disciplines</h2>
+        <div class="discipline-grid">
+            <div class="discipline-card reveal-zoom delay-1">
+                <div class="disc-header">
+                    <div class="disc-icon"><i class="bi bi-printer"></i></div>
+                    <div class="disc-title">
+                        <h3>Offset & Digital</h3>
+                        <p>Heidelberg XL 106, 6‑colour + coater</p>
+                    </div>
+                </div>
+                <div class="disc-details">
+                    <span>300 lpi</span><span>Pantone matching</span><span>UV coating</span><span>perfecting</span>
+                </div>
+            </div>
+            <div class="discipline-card reveal-zoom delay-2">
+                <div class="disc-header">
+                    <div class="disc-icon"><i class="bi bi-box-seam"></i></div>
+                    <div class="disc-title">
+                        <h3>Luxury packaging</h3>
+                        <p>rigid boxes, magnetic closures, soft‑touch</p>
+                    </div>
+                </div>
+                <div class="disc-details">
+                    <span>foil stamping</span><span>embossing</span><span>spot UV</span><span>die‑cut</span>
+                </div>
+            </div>
+            <div class="discipline-card reveal-zoom delay-3">
+                <div class="disc-header">
+                    <div class="disc-icon"><i class="bi bi-pencil-fill"></i></div>
+                    <div class="disc-title">
+                        <h3>Large format</h3>
+                        <p>roll‑to‑roll, flatbed up to 3m</p>
+                    </div>
+                </div>
+                <div class="disc-details">
+                    <span>billboards</span><span>window graphics</span><span>exhibitions</span><span>backlit</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- EQUIPMENT & TECH (bento grid) -->
+        <h2 class="section-title reveal-slide-right"><i class="bi bi-cpu"></i> equipment</h2>
+        <div class="tech-bento">
+            <div class="bento-item reveal-fade-up delay-1">
+                <i class="bi bi-gear-wide-connected"></i>
+                <h4>Heidelberg CD 102</h4>
+                <p>6‑colour + tower coater · 15k sph</p>
+            </div>
+            <div class="bento-item reveal-fade-up delay-2">
+                <i class="bi bi-scissors"></i>
+                <h4>Polar cutting</h4>
+                <p>computer‑guided · ±0.1mm</p>
+            </div>
+            <div class="bento-item reveal-fade-up delay-1">
+                <i class="bi bi-brightness-high"></i>
+                <h4>Kurz foil stamper</h4>
+                <p>hot/cold foil · multi‑register</p>
+            </div>
+            <div class="bento-item reveal-fade-up delay-2">
+                <i class="bi bi-palette"></i>
+                <h4>Pantone lab</h4>
+                <p>spectrophotometer · custom mixing</p>
+            </div>
+        </div>
+
+        <!-- MATERIAL LIBRARY (horizontal scroll) -->
+        <h2 class="section-title reveal-slide-right"><i class="bi bi-stack"></i> material library</h2>
+        <div class="material-scroll" style="scrollbar-width: thin;">
+            <div class="material-card reveal-zoom delay-1">
+                <div class="swatch soft-touch"></div>
+                <h5>Soft‑touch</h5>
+                <p>velvet finish · 300‑400gsm</p>
+            </div>
+            <div class="material-card reveal-zoom delay-2">
+                <div class="swatch uncoated"></div>
+                <h5>Uncoated</h5>
+                <p>natural texture · writing</p>
+            </div>
+            <div class="material-card reveal-zoom delay-3">
+                <div class="swatch metallic"></div>
+                <h5>Metallic</h5>
+                <p>gold/silver/copper</p>
+            </div>
+            <div class="material-card reveal-zoom delay-1">
+                <div class="swatch recycled"></div>
+                <h5>Recycled</h5>
+                <p>FSC · 100% post‑consumer</p>
+            </div>
+            <div class="material-card reveal-zoom delay-2">
+                <div class="swatch" style="background: #f5f5dc;"></div>
+                <h5>Ivory board</h5>
+                <p>rigid boxes · 32pt</p>
+            </div>
+        </div>
+
+        <!-- FINISHING TECHNIQUES (list with elastic pills) -->
+        <h2 class="section-title reveal-fade-up"><i class="bi bi-stars"></i> finishing</h2>
+        <div style="margin: 1.5rem; display: flex; flex-wrap: wrap; gap: 10px;">
+            <span class="industry-pill" style="background: var(--accent-green); border: none;">⚡ foil stamping</span>
+            <span class="industry-pill" style="background: var(--accent-pink); border: none;">⚡ emboss/deboss</span>
+            <span class="industry-pill" style="background: var(--accent-blue); color: white;">⚡ spot UV</span>
+            <span class="industry-pill">⚡ die‑cut</span>
+            <span class="industry-pill">⚡ letterpress</span>
+            <span class="industry-pill">⚡ edge painting</span>
+            <span class="industry-pill">⚡ thermography</span>
+        </div>
+
+        <!-- INDUSTRIES WE SERVE (cloud) -->
+        <h2 class="section-title reveal-slide-right"><i class="bi bi-briefcase"></i> industries</h2>
+        <div class="industry-cloud">
+            <span class="industry-pill reveal-zoom delay-1">finance</span>
+            <span class="industry-pill reveal-zoom delay-2">tech</span>
+            <span class="industry-pill reveal-zoom delay-3">luxury retail</span>
+            <span class="industry-pill reveal-zoom delay-1">events</span>
+            <span class="industry-pill reveal-zoom delay-2">art</span>
+            <span class="industry-pill reveal-zoom delay-3">FMCG</span>
+            <span class="industry-pill reveal-zoom delay-1">real estate</span>
+        </div>
+
+        <!-- CTA (different from landing) -->
+        <div class="cap-cta reveal-fade-up">
+            <h2>ready to engineer<br>your next piece?</h2>
+            <p style="margin-bottom: 1rem; opacity: 0.8;">from concept to press, we handle every variable.</p>
+            <a href="#" class="btn" style="background: white; color: black;">start technical brief →</a>
+        </div>
+
+        <!-- FOOTER (same style as landing, slight copy change) -->
+        <footer>
+            <h2 class="reveal-fade-up">precision<br>meets passion.</h2>
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #333; text-align: left;">
+                <p style="display: flex; align-items: center; gap: 10px; margin-bottom: 0.8rem;"><i class="bi bi-geo-alt-fill" style="color: var(--accent-green);"></i> 12 Bourdillon Road, Ikoyi, Lagos</p>
+                <p style="display: flex; align-items: center; gap: 10px; margin-bottom: 0.8rem;"><i class="bi bi-telephone-fill" style="color: var(--accent-green);"></i> +234 916 471 2004</p>
+                <p style="display: flex; align-items: center; gap: 10px;"><i class="bi bi-envelope-fill" style="color: var(--accent-green);"></i> hello@opsis.ng</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        (function() {
+            // --- HAMBURGER / SIDEBAR (same as landing)
+            const ham = document.getElementById('hamburger');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            const spans = ham.querySelectorAll('span');
+
+            function toggleSidebar(e) {
+                e?.stopPropagation();
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+
+                if (sidebar.classList.contains('active')) {
+                    spans[0].style.transform = 'translateY(10px) rotate(45deg)';
+                    spans[1].style.transform = 'translateY(-8px) rotate(-45deg)';
+                    spans[1].style.width = '100%';
+                } else {
+                    spans[0].style.transform = 'none';
+                    spans[1].style.transform = 'none';
+                    spans[1].style.width = '70%';
+                }
+            }
+
+            ham.addEventListener('click', toggleSidebar);
+            overlay.addEventListener('click', toggleSidebar);
+
+            // --- INTERSECTION OBSERVER (reveal)
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, { threshold: 0.15, rootMargin: '0px 0px -30px 0px' });
+
+            const revealElements = document.querySelectorAll(
+                '.reveal-fade-up, .reveal-slide-right, .reveal-zoom'
+            );
+            revealElements.forEach(el => observer.observe(el));
+
+            // second pass fallback
+            const allReveal = document.querySelectorAll('.reveal-fade-up, .reveal-slide-right, .reveal-zoom');
+            const observerFast = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if(entry.isIntersecting) entry.target.classList.add('active');
+                });
+            }, { threshold: 0.1 });
+            allReveal.forEach(el => observerFast.observe(el));
+
+            // smooth scroll for material scroller (optional)
+            const scrollContainer = document.querySelector('.material-scroll');
+            if(scrollContainer) {
+                scrollContainer.addEventListener('mousedown', (e) => {
+                    let startX = e.pageX - scrollContainer.offsetLeft;
+                    let scrollLeft = scrollContainer.scrollLeft;
+                    function onMouseMove(e) {
+                        e.preventDefault();
+                        const x = e.pageX - scrollContainer.offsetLeft;
+                        const walk = (x - startX) * 1.5;
+                        scrollContainer.scrollLeft = scrollLeft - walk;
+                    }
+                    function onMouseUp() {
+                        document.removeEventListener('mousemove', onMouseMove);
+                        document.removeEventListener('mouseup', onMouseUp);
+                    }
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
